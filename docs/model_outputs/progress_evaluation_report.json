@@ -1,0 +1,63 @@
+{
+  "module": "9-Stage Construction Progress Classifier",
+  "model_file": "progress_model.pth",
+  "model_architecture": "Deep 9-Stage CNN (128x128x3)",
+  "overall_accuracy": 0.8889,
+  "test_samples_total": 72,
+  "per_stage_metrics": {
+    "Site Preparation": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 8
+    },
+    "Excavation": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 8
+    },
+    "Foundation": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 8
+    },
+    "Structural Work": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 8
+    },
+    "Brickwork": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 8
+    },
+    "Roofing": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 8
+    },
+    "Plastering": {
+      "precision": 0.5,
+      "recall": 1.0,
+      "f1_score": 0.667,
+      "support": 8
+    },
+    "Electrical & Plumbing": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 8
+    },
+    "Finishing": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "support": 8
+    }
+  }
+}

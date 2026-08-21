@@ -1,0 +1,33 @@
+# Web Framework
+fastapi
+uvicorn[standard]
+python-dotenv
+python-multipart
+pydantic
+pydantic-settings
+
+# WebSocket
+websockets
+
+# Database (MongoDB Async & Sync Drivers)
+motor
+pymongo
+dnspython
+
+# Computer Vision & AI
+opencv-python-headless
+numpy
+ultralytics
+torch
+torchvision
+
+# Machine Learning, Graph & Explainability
+scikit-learn
+joblib
+networkx
+
+# Utilities
+Pillow
+aiofiles
+psutil
+openpyxl

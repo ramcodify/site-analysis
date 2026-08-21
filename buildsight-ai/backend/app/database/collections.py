@@ -1,0 +1,10 @@
+"""BuildSight AI — MongoDB Collection Name Constants & Accessors"""
+
+COLLECTION_REGISTERED_WORKERS = "registered_workers"
+COLLECTION_WORKER_SESSIONS    = "worker_sessions"
+COLLECTION_WORKER_SNAPSHOTS   = "worker_snapshots"
+COLLECTION_VIOLATIONS         = "violations"
+COLLECTION_PROGRESS_RECORDS   = "progress_records"
+COLLECTION_VIDEO_SOURCES      = "video_sources"
+COLLECTION_DANGER_ZONES       = "danger_zones"
+COLLECTION_REPORTS            = "reports"

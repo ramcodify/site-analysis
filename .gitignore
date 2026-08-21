@@ -1,0 +1,53 @@
+# Python virtual environments & bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+venv/
+.venv/
+env/
+
+# Node & frontend build artifacts
+node_modules/
+dist/
+.vite/
+
+# Environment files (keep .env.example)
+.env
+*.env.local
+
+# Database temporary files
+*.db
+*.sqlite3
+*.db-shm
+*.db-wal
+
+# IDE & OS
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Large Datasets
+Personal Protective Equipment - Combined Model.v8i.yolov12/
+buildsight-ai/backend/dataset/progress/
+
+# Video Uploads, Evidence & Evaluation Run Artifacts
+buildsight-ai/backend/data/uploads/*
+buildsight-ai/backend/data/evidence/*
+buildsight-ai/backend/runs/detect/val/*.jpg
+buildsight-ai/backend/runs/detect/val/*.png
+!buildsight-ai/backend/data/uploads/.gitkeep
+!buildsight-ai/backend/data/evidence/.gitkeep
+
+# Model weights (auto-managed/downloaded by model_downloader.py)
+*.pt
+*.pth
+*.onnx
+*.joblib
+!buildsight-ai/backend/data/models/.gitkeep
+
+# Logs
+*.log

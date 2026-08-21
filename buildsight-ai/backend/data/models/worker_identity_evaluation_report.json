@@ -1,0 +1,159 @@
+{
+  "module": "Permanent Worker Face Identification",
+  "evaluation_timestamp": "2026-08-21T16:42:43Z",
+  "face_detector": "YuNet (face_detection_yunet_2023mar.onnx)",
+  "face_recognizer": "SFace (face_recognition_sface_2021dec.onnx)",
+  "embedding_dimension": 128,
+  "enrolled_registered_identities": 10,
+  "enrolled_templates_per_identity": 3,
+  "total_test_probes": 130,
+  "optimal_cosine_threshold": 0.4,
+  "test_metrics": {
+    "true_accept_rate": 0.94,
+    "false_match_rate": 0.0,
+    "false_non_match_rate": 0.06,
+    "unknown_rejection_rate": 1.0,
+    "precision": 1.0,
+    "recall": 0.94,
+    "f1_score": 0.9691,
+    "true_positives": 94,
+    "false_positives": 0,
+    "false_negatives": 6,
+    "true_negatives": 30
+  },
+  "threshold_sensitivity_curve": [
+    {
+      "threshold": 0.4,
+      "true_accept_rate": 1.0,
+      "false_match_rate": 0.0,
+      "false_non_match_rate": 0.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0
+    },
+    {
+      "threshold": 0.45,
+      "true_accept_rate": 1.0,
+      "false_match_rate": 0.0,
+      "false_non_match_rate": 0.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0
+    },
+    {
+      "threshold": 0.5,
+      "true_accept_rate": 0.975,
+      "false_match_rate": 0.0,
+      "false_non_match_rate": 0.025,
+      "precision": 1.0,
+      "recall": 0.975,
+      "f1_score": 0.9873
+    },
+    {
+      "threshold": 0.55,
+      "true_accept_rate": 0.9,
+      "false_match_rate": 0.0,
+      "false_non_match_rate": 0.1,
+      "precision": 1.0,
+      "recall": 0.9,
+      "f1_score": 0.9474
+    },
+    {
+      "threshold": 0.58,
+      "true_accept_rate": 0.775,
+      "false_match_rate": 0.0,
+      "false_non_match_rate": 0.225,
+      "precision": 1.0,
+      "recall": 0.775,
+      "f1_score": 0.8732
+    },
+    {
+      "threshold": 0.6,
+      "true_accept_rate": 0.75,
+      "false_match_rate": 0.0,
+      "false_non_match_rate": 0.25,
+      "precision": 1.0,
+      "recall": 0.75,
+      "f1_score": 0.8571
+    },
+    {
+      "threshold": 0.65,
+      "true_accept_rate": 0.55,
+      "false_match_rate": 0.0,
+      "false_non_match_rate": 0.45,
+      "precision": 1.0,
+      "recall": 0.55,
+      "f1_score": 0.7097
+    },
+    {
+      "threshold": 0.7,
+      "true_accept_rate": 0.375,
+      "false_match_rate": 0.0,
+      "false_non_match_rate": 0.625,
+      "precision": 1.0,
+      "recall": 0.375,
+      "f1_score": 0.5455
+    },
+    {
+      "threshold": 0.75,
+      "true_accept_rate": 0.275,
+      "false_match_rate": 0.0,
+      "false_non_match_rate": 0.725,
+      "precision": 1.0,
+      "recall": 0.275,
+      "f1_score": 0.4314
+    }
+  ],
+  "condition_breakdown": {
+    "frontal_clear": {
+      "total_probes": 10,
+      "accuracy": 1.0
+    },
+    "left_profile": {
+      "total_probes": 10,
+      "accuracy": 1.0
+    },
+    "right_profile": {
+      "total_probes": 10,
+      "accuracy": 1.0
+    },
+    "facial_expression": {
+      "total_probes": 10,
+      "accuracy": 1.0
+    },
+    "dim_lighting": {
+      "total_probes": 10,
+      "accuracy": 1.0
+    },
+    "distant_camera": {
+      "total_probes": 10,
+      "accuracy": 1.0
+    },
+    "helmet_worn": {
+      "total_probes": 10,
+      "accuracy": 1.0
+    },
+    "face_mask_worn": {
+      "total_probes": 10,
+      "accuracy": 0.4
+    },
+    "glasses_worn": {
+      "total_probes": 10,
+      "accuracy": 1.0
+    },
+    "motion_blur": {
+      "total_probes": 10,
+      "accuracy": 1.0
+    },
+    "unregistered_impostor": {
+      "total_probes": 30,
+      "accuracy": 1.0
+    }
+  },
+  "status": "PASS WITH LIMITATIONS",
+  "limitations": [
+    "Face mask coverage severely reduces facial feature visibility, causing elevated false non-match rate (FNMR) unless upper facial landmarks/forehead features are unobstructed.",
+    "Extreme profile angles (>60 degrees yaw) significantly degrade 2D face alignment geometry.",
+    "Distance beyond 6m without zoom reduces facial bounding box below the minimum 50x50px resolution requirement."
+  ]
+}

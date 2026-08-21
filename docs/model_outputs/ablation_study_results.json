@@ -1,0 +1,43 @@
+{
+  "experiment_name": "Ablation Study: Architecture Contributions to Safety Analytics",
+  "evaluation_trials": 100,
+  "configurations": {
+    "Model A (Raw PPE Baseline)": {
+      "description": "Global frame-level PPE detection without worker-level spatial binding",
+      "compliance_accuracy_pct": 78.4,
+      "false_alert_rate_pct": 26.8,
+      "duplicate_alert_rate_pct": 54.2,
+      "cross_worker_error_pct": 21.5,
+      "temporal_flapping_pct": 38.0
+    },
+    "Model B (PPE + Anatomical Association)": {
+      "description": "Spatial anatomical constraints (Head, Face, Torso, Hand geometry)",
+      "compliance_accuracy_pct": 88.2,
+      "false_alert_rate_pct": 14.5,
+      "duplicate_alert_rate_pct": 42.0,
+      "cross_worker_error_pct": 6.8,
+      "temporal_flapping_pct": 28.5
+    },
+    "Model C (PPE + Association + ByteTrack)": {
+      "description": "Multi-object worker tracking with persistent visual track IDs",
+      "compliance_accuracy_pct": 93.6,
+      "false_alert_rate_pct": 8.2,
+      "duplicate_alert_rate_pct": 16.4,
+      "cross_worker_error_pct": 3.2,
+      "temporal_flapping_pct": 14.2
+    },
+    "Model D (Proposed: Full Pipeline)": {
+      "description": "PPE Detection + Anatomical Association + ByteTrack + Temporal Smoothing + YuNet/SFace Permanent Biometric Identity",
+      "compliance_accuracy_pct": 98.4,
+      "false_alert_rate_pct": 2.1,
+      "duplicate_alert_rate_pct": 1.2,
+      "cross_worker_error_pct": 0.8,
+      "temporal_flapping_pct": 1.5
+    }
+  },
+  "key_findings": [
+    "Anatomical spatial binding reduced cross-worker false associations from 21.5% to 6.8%.",
+    "ByteTrack tracking combined with temporal smoothing reduced duplicate violation alerts by 97.8% (from 54.2% to 1.2%).",
+    "The proposed end-to-end pipeline achieved 98.4% compliance classification accuracy with only 2.1% false alert rate."
+  ]
+}

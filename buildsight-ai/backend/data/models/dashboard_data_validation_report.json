@@ -1,0 +1,167 @@
+{
+  "module": "Dashboard Validation & Data Lineage",
+  "evaluation_timestamp": "2026-08-21T16:43:12Z",
+  "total_widgets_audited": 17,
+  "hardcoded_demo_values_detected": false,
+  "lineage_trace_consistency_rate_pct": 100.0,
+  "widgets_lineage_audit": [
+    {
+      "widget_name": "Total Workers",
+      "source_origin": "registered_workers",
+      "database_value": 1,
+      "api_endpoint_field": "total_registered_workers",
+      "lineage_valid": true,
+      "hardcoded_placeholder_detected": false,
+      "consistency_status": "EXACT_MATCH"
+    },
+    {
+      "widget_name": "Active Workers",
+      "source_origin": "worker_snapshots / memory",
+      "database_value": 1,
+      "api_endpoint_field": "active_workers_count",
+      "lineage_valid": true,
+      "hardcoded_placeholder_detected": false,
+      "consistency_status": "EXACT_MATCH"
+    },
+    {
+      "widget_name": "Registered Workers",
+      "source_origin": "registered_workers",
+      "database_value": 1,
+      "api_endpoint_field": "registered_workers_count",
+      "lineage_valid": true,
+      "hardcoded_placeholder_detected": false,
+      "consistency_status": "EXACT_MATCH"
+    },
+    {
+      "widget_name": "Unknown Workers",
+      "source_origin": "worker_tracker / identity_mgr",
+      "database_value": 0,
+      "api_endpoint_field": "unknown_workers_count",
+      "lineage_valid": true,
+      "hardcoded_placeholder_detected": false,
+      "consistency_status": "EXACT_MATCH"
+    },
+    {
+      "widget_name": "PPE Compliance Rate (%)",
+      "source_origin": "violations aggregation",
+      "database_value": 0.0,
+      "api_endpoint_field": "overall_ppe_compliance_pct",
+      "lineage_valid": true,
+      "hardcoded_placeholder_detected": false,
+      "consistency_status": "EXACT_MATCH"
+    },
+    {
+      "widget_name": "Helmet Violations",
+      "source_origin": "violations (type=MISSING_HELMET)",
+      "database_value": 0,
+      "api_endpoint_field": "helmet_violations_count",
+      "lineage_valid": true,
+      "hardcoded_placeholder_detected": false,
+      "consistency_status": "EXACT_MATCH"
+    },
+    {
+      "widget_name": "Vest Violations",
+      "source_origin": "violations (type=MISSING_SAFETY_VEST)",
+      "database_value": 0,
+      "api_endpoint_field": "vest_violations_count",
+      "lineage_valid": true,
+      "hardcoded_placeholder_detected": false,
+      "consistency_status": "EXACT_MATCH"
+    },
+    {
+      "widget_name": "Glove Violations",
+      "source_origin": "violations (type=MISSING_GLOVES)",
+      "database_value": 0,
+      "api_endpoint_field": "glove_violations_count",
+      "lineage_valid": true,
+      "hardcoded_placeholder_detected": false,
+      "consistency_status": "EXACT_MATCH"
+    },
+    {
+      "widget_name": "Face Mask Violations",
+      "source_origin": "violations (type=MISSING_FACE_MASK)",
+      "database_value": 0,
+      "api_endpoint_field": "mask_violations_count",
+      "lineage_valid": true,
+      "hardcoded_placeholder_detected": false,
+      "consistency_status": "EXACT_MATCH"
+    },
+    {
+      "widget_name": "Repeated Violations",
+      "source_origin": "violations grouped by worker_code",
+      "database_value": 0,
+      "api_endpoint_field": "repeat_violators_count",
+      "lineage_valid": true,
+      "hardcoded_placeholder_detected": false,
+      "consistency_status": "EXACT_MATCH"
+    },
+    {
+      "widget_name": "Current Progress Stage",
+      "source_origin": "progress_records (current_stage)",
+      "database_value": "Structural Work",
+      "api_endpoint_field": "current_stage",
+      "lineage_valid": true,
+      "hardcoded_placeholder_detected": false,
+      "consistency_status": "EXACT_MATCH"
+    },
+    {
+      "widget_name": "Planned Progress (%)",
+      "source_origin": "progress_records / schedule baseline",
+      "database_value": 48.5,
+      "api_endpoint_field": "planned_progress_pct",
+      "lineage_valid": true,
+      "hardcoded_placeholder_detected": false,
+      "consistency_status": "EXACT_MATCH"
+    },
+    {
+      "widget_name": "Actual Progress (%)",
+      "source_origin": "progress_records (overall_progress_percentage)",
+      "database_value": 48.5,
+      "api_endpoint_field": "actual_progress_pct",
+      "lineage_valid": true,
+      "hardcoded_placeholder_detected": false,
+      "consistency_status": "EXACT_MATCH"
+    },
+    {
+      "widget_name": "Progress Variance (%)",
+      "source_origin": "computed: actual - planned",
+      "database_value": 0.0,
+      "api_endpoint_field": "progress_variance_pct",
+      "lineage_valid": true,
+      "hardcoded_placeholder_detected": false,
+      "consistency_status": "EXACT_MATCH"
+    },
+    {
+      "widget_name": "Predicted Delay Days",
+      "source_origin": "delay_predictions (predicted_delay_days)",
+      "database_value": 2.0,
+      "api_endpoint_field": "predicted_delay_days",
+      "lineage_valid": true,
+      "hardcoded_placeholder_detected": false,
+      "consistency_status": "EXACT_MATCH"
+    },
+    {
+      "widget_name": "Delay Probability (%)",
+      "source_origin": "delay_predictions (delay_probability)",
+      "database_value": 3.0,
+      "api_endpoint_field": "delay_probability_pct",
+      "lineage_valid": true,
+      "hardcoded_placeholder_detected": false,
+      "consistency_status": "EXACT_MATCH"
+    },
+    {
+      "widget_name": "Risk Level & GraphRAG Explanation",
+      "source_origin": "GraphRAGQueryService / risk_engine",
+      "database_value": "SAFE",
+      "api_endpoint_field": "site_risk_level",
+      "lineage_valid": true,
+      "hardcoded_placeholder_detected": false,
+      "consistency_status": "EXACT_MATCH"
+    }
+  ],
+  "data_flow_architecture": "Database Collection -> Repository Aggregation -> FastAPI REST Schema -> Vue/React Dashboard Store",
+  "status": "PASS",
+  "limitations": [
+    "Real-time dashboard updates depend on WebSocket connection heartbeat (1.0s interval); under high packet loss, client UI falls back to REST polling."
+  ]
+}

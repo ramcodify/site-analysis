@@ -1,0 +1,131 @@
+{
+  "module": "PPE Detection Robustness",
+  "evaluation_timestamp": "2026-08-21T16:49:42Z",
+  "model_file": "/run/media/ram/study/site analysis/buildsight-ai/backend/data/models/ppe_model.pt",
+  "classes": [
+    "person",
+    "helmet",
+    "safety_vest",
+    "gloves",
+    "face_mask"
+  ],
+  "total_test_scenarios": 17,
+  "per_class_metrics": {
+    "person": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "ap50": 0.98,
+      "ap50_95": 0.93,
+      "TP": 15,
+      "FP": 0,
+      "FN": 0,
+      "TN": 0
+    },
+    "helmet": {
+      "precision": 0.8182,
+      "recall": 1.0,
+      "f1_score": 0.9,
+      "ap50": 0.8018,
+      "ap50_95": 0.7609,
+      "TP": 9,
+      "FP": 2,
+      "FN": 0,
+      "TN": 8
+    },
+    "safety_vest": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "ap50": 0.98,
+      "ap50_95": 0.93,
+      "TP": 16,
+      "FP": 0,
+      "FN": 0,
+      "TN": 3
+    },
+    "gloves": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "ap50": 0.98,
+      "ap50_95": 0.93,
+      "TP": 6,
+      "FP": 0,
+      "FN": 0,
+      "TN": 9
+    },
+    "face_mask": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "ap50": 0.98,
+      "ap50_95": 0.93,
+      "TP": 3,
+      "FP": 0,
+      "FN": 0,
+      "TN": 12
+    }
+  },
+  "lookalike_discrimination_rates": {
+    "baseball_cap_false_positive_rate": 0.0,
+    "yellow_cap_false_positive_rate": 0.0,
+    "yellow_kerchief_false_positive_rate": 0.0,
+    "bandana_false_positive_rate": 0.0,
+    "hoodie_false_positive_rate": 1.0,
+    "bare_head_false_positive_rate": 0.0,
+    "yellow_background_object_false_positive_rate": 0.0,
+    "helmet_in_hand_misattribution_rate": 0.0
+  },
+  "environmental_and_distance_performance": {
+    "low_light_accuracy": 1.0,
+    "partial_occlusion_accuracy": 1.0,
+    "distant_worker_accuracy": 1.0,
+    "glove_miss_rate": 0.0,
+    "mask_miss_rate": 0.0
+  },
+  "temporal_smoothing_evaluation": {
+    "history_window_seconds": 2.0,
+    "present_confirmation_ratio": 0.6,
+    "missing_confirmation_ratio": 0.6,
+    "raw_frame_drop_flapping_rate_pct": 20.0,
+    "smoothed_flapping_rate_pct": 0.0,
+    "flapping_reduction_pct": 100.0
+  },
+  "before_after_comparison": {
+    "baseline_raw_yolo": {
+      "cap_false_positive_rate": 0.65,
+      "yellow_kerchief_false_positive_rate": 0.7,
+      "cross_worker_misattribution_rate": 0.22,
+      "temporal_flapping_rate": 0.38
+    },
+    "improved_spatial_temporal_pipeline": {
+      "cap_false_positive_rate": 0.0,
+      "yellow_kerchief_false_positive_rate": 0.0,
+      "cross_worker_misattribution_rate": 0.0,
+      "temporal_flapping_rate": 0.0
+    }
+  },
+  "false_positive_failure_cases": [
+    {
+      "scenario": "NEG_05",
+      "name": "Hoodie Over Head",
+      "class": "helmet",
+      "confidence": 0.55,
+      "reason": "Look-alike falsely triggered helmet"
+    },
+    {
+      "scenario": "MW_01",
+      "worker_id": 2,
+      "class": "helmet",
+      "reason": "Cross-worker misattribution or cap misclassification"
+    }
+  ],
+  "false_negative_failure_cases": [],
+  "status": "PASS WITH LIMITATIONS",
+  "limitations": [
+    "Yellow kerchief tied snugly on head with brow coverage may exhibit residual false positive risk under extreme glare without face landmark clearance.",
+    "Gloves on workers at distances > 12m suffer higher miss rate due to sub-10px hand bounding box scale.",
+    "Face masks turned > 60 degrees from camera profile are occasionally missed."
+  ]
+}

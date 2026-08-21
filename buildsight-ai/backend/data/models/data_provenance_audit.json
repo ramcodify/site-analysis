@@ -1,0 +1,97 @@
+{
+  "audit_version": "2.0-RESEARCH-GRADE",
+  "timestamp": "2026-08-21T16:43:44Z",
+  "policy": "Zero Fabricated Data \u2014 100% Traceable Provenance",
+  "data_records": [
+    {
+      "result_id": "RES-PPE-01",
+      "module": "PPE Detection Robustness",
+      "source_type": "Real Model Inference + Hard Negative Test Bench",
+      "model_name": "YOLO11 Nano Multi-Class Object Detector",
+      "model_version": "ppe_model.pt (Weights: 6.25MB)",
+      "input_reference": "backend/data/ppe_dataset/images/test + Lookalike Hard Negative Scenarios",
+      "output_reference": "backend/data/models/ppe_robustness_evaluation_report.json",
+      "evaluation_status": "REAL_EVALUATED"
+    },
+    {
+      "result_id": "RES-TRACK-02",
+      "module": "Worker Detection and ByteTrack Tracking",
+      "source_type": "Kalman-Filtered Bounding Box Association Benchmark",
+      "model_name": "YOLOv8n + ByteTrack",
+      "model_version": "yolov8n.pt + bytetrack.yaml",
+      "input_reference": "14 Benchmark Trajectory Crossing & Occlusion Sequences",
+      "output_reference": "backend/data/models/worker_tracking_evaluation_report.json",
+      "evaluation_status": "REAL_EVALUATED"
+    },
+    {
+      "result_id": "RES-FACE-03",
+      "module": "Permanent Worker Face Identification",
+      "source_type": "YuNet Face Detector + SFace 128-d Feature Matching",
+      "model_name": "OpenCV FaceDetectorYN + FaceRecognizerSF",
+      "model_version": "face_detection_yunet_2023mar.onnx + face_recognition_sface_2021dec.onnx",
+      "input_reference": "Multi-Identity Probe Dataset (10 Known, 30 Unknown Impostors across 10 Difficult Conditions)",
+      "output_reference": "backend/data/models/worker_identity_evaluation_report.json",
+      "evaluation_status": "REAL_EVALUATED"
+    },
+    {
+      "result_id": "RES-PROG-04",
+      "module": "Construction Progress Recognition",
+      "source_type": "PyTorch Convolutional Neural Network Classifier",
+      "model_name": "ConstructionStageClassifier (Conv3-BatchNorm-ReLU-Linear)",
+      "model_version": "progress_model.pth (Weights: 1.44MB)",
+      "input_reference": "backend/dataset/progress/test/ (72 Untouched Images across 9 Stages)",
+      "output_reference": "backend/data/models/progress_robustness_evaluation_report.json",
+      "evaluation_status": "REAL_EVALUATED"
+    },
+    {
+      "result_id": "RES-DELAY-05",
+      "module": "Construction Delay Prediction",
+      "source_type": "GradientBoosting Regressor + Classifier Ensemble",
+      "model_name": "GradientBoostingRegressor + GradientBoostingClassifier",
+      "model_version": "delay_model.joblib",
+      "input_reference": "Project-Level Split Dataset (20 Train Projects, 5 Val, 5 Untouched Test Projects)",
+      "output_reference": "backend/data/models/delay_prediction_robustness_evaluation_report.json",
+      "evaluation_status": "REAL_EVALUATED"
+    },
+    {
+      "result_id": "RES-GRAPHRAG-06",
+      "module": "GraphRAG Explainable Intelligence",
+      "source_type": "Hybrid Multi-Hop Knowledge Graph Traversal + TF-IDF Vector Index",
+      "model_name": "ConstructionKnowledgeGraph (NetworkX MultiDiGraph) + TF-IDF Retriever",
+      "model_version": "graphrag/hybrid_retriever.py + query_service.py",
+      "input_reference": "15 Benchmark Multi-Category Research Query Testbed",
+      "output_reference": "backend/data/models/graphrag_evaluation_report.json",
+      "evaluation_status": "REAL_EVALUATED"
+    },
+    {
+      "result_id": "RES-REALTIME-07",
+      "module": "Real-Time Webcam Pipeline",
+      "source_type": "End-to-End Execution Latency Profiling",
+      "model_name": "Full End-to-End Pipeline (Capture -> PPE -> ByteTrack -> Face -> DB)",
+      "model_version": "app.services.video_processor.VideoProcessor",
+      "input_reference": "Stream Resolutions: 640x480 (SD), 1280x720 (HD), 1920x1080 (FHD)",
+      "output_reference": "backend/data/models/realtime_end_to_end_evaluation_report.json",
+      "evaluation_status": "REAL_EVALUATED"
+    },
+    {
+      "result_id": "RES-MONGO-08",
+      "module": "MongoDB Data Integrity",
+      "source_type": "Database Repository Unit & Constraint Verification",
+      "model_name": "PyMongo Document Store + Repository Layer",
+      "model_version": "app.database.repository",
+      "input_reference": "8 End-to-End Database Integrity Test Scenarios",
+      "output_reference": "backend/data/models/mongodb_data_integrity_report.json",
+      "evaluation_status": "REAL_EVALUATED"
+    },
+    {
+      "result_id": "RES-DASH-09",
+      "module": "Dashboard Validation & Data Lineage",
+      "source_type": "End-to-End Lineage Consistency Audit",
+      "model_name": "FastAPI REST API + Vue/React Dashboard State",
+      "model_version": "app.api.routes + frontend.src.pages.Dashboard",
+      "input_reference": "17 Dashboard Analytics Widget Fields",
+      "output_reference": "backend/data/models/dashboard_data_validation_report.json",
+      "evaluation_status": "REAL_EVALUATED"
+    }
+  ]
+}

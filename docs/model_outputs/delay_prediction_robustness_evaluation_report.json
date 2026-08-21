@@ -1,0 +1,227 @@
+{
+  "module": "Construction Delay Prediction",
+  "evaluation_timestamp": "2026-08-21T16:42:46Z",
+  "model_architecture": "GradientBoostingRegressor + GradientBoostingClassifier Ensemble",
+  "features": [
+    "planned_progress_pct",
+    "actual_progress_pct",
+    "progress_variance",
+    "current_stage_idx",
+    "stage_elapsed_days",
+    "planned_stage_days",
+    "active_worker_count",
+    "total_violations",
+    "repeated_violations",
+    "safety_interruptions"
+  ],
+  "dataset_split": "Project-Level Split (20 Train Projects, 5 Val Projects, 5 Untouched Test Projects)",
+  "test_samples_count": 125,
+  "regression_metrics": {
+    "mean_absolute_error_days": 0.419,
+    "root_mean_squared_error_days": 0.671,
+    "r2_score": 0.8632,
+    "median_absolute_error_days": 0.254
+  },
+  "classification_metrics": {
+    "accuracy": 0.904,
+    "precision": 0.7407,
+    "recall": 0.8,
+    "f1_score": 0.7692,
+    "roc_auc": 0.9622,
+    "confusion_matrix": [
+      [
+        93,
+        7
+      ],
+      [
+        5,
+        20
+      ]
+    ]
+  },
+  "feature_importances": [
+    {
+      "feature": "progress_variance",
+      "importance": 0.9434
+    },
+    {
+      "feature": "stage_elapsed_days",
+      "importance": 0.0217
+    },
+    {
+      "feature": "planned_stage_days",
+      "importance": 0.012
+    },
+    {
+      "feature": "total_violations",
+      "importance": 0.0061
+    },
+    {
+      "feature": "repeated_violations",
+      "importance": 0.0054
+    },
+    {
+      "feature": "active_worker_count",
+      "importance": 0.0038
+    },
+    {
+      "feature": "actual_progress_pct",
+      "importance": 0.0035
+    },
+    {
+      "feature": "safety_interruptions",
+      "importance": 0.0028
+    },
+    {
+      "feature": "planned_progress_pct",
+      "importance": 0.0007
+    },
+    {
+      "feature": "current_stage_idx",
+      "importance": 0.0006
+    }
+  ],
+  "data_leakage_audit": {
+    "top_contributing_feature": "progress_variance",
+    "top_feature_importance_ratio": 0.9434,
+    "is_heavily_dominated": true,
+    "data_leakage_assessment": "Feature 'progress_variance' accounts for 94.3% of regressor importance. Because progress_variance is calculated as (actual_progress_pct - planned_progress_pct), it directly reflects schedule deviation at the measurement milestone. While progress variance is a valid operational state variable in construction management, models trained solely on progress_variance fail to capture future delay propagation driven by safety interruptions and crew shortages when variance is momentarily near zero."
+  },
+  "baseline_comparison": {
+    "proposed_gradient_boosting": {
+      "mae_days": 0.419,
+      "rmse_days": 0.671,
+      "r2_score": 0.8632,
+      "classification_f1": 0.7692
+    },
+    "baseline_1_mean_delay": {
+      "mae_days": 2.192,
+      "rmse_days": 2.35,
+      "r2_score": -0.678
+    },
+    "baseline_2_linear_regression": {
+      "mae_days": 0.907,
+      "rmse_days": 1.193,
+      "r2_score": 0.5676
+    },
+    "baseline_3_decision_tree": {
+      "mae_days": 0.412,
+      "rmse_days": 0.658,
+      "r2_score": 0.8686,
+      "classification_f1": 0.807
+    }
+  },
+  "ablation_study": {
+    "Configuration A (Full Model - 10 Features)": {
+      "mae_days": 0.419,
+      "rmse_days": 0.671,
+      "r2_score": 0.8632
+    },
+    "Configuration B (Without progress_variance - 9 Features)": {
+      "mae_days": 1.311,
+      "rmse_days": 1.7,
+      "r2_score": 0.122
+    },
+    "Configuration C (Schedule Features Only - 6 Features)": {
+      "mae_days": 0.408,
+      "rmse_days": 0.645,
+      "r2_score": 0.8736
+    },
+    "Configuration D (Safety & Crew Features Only - 4 Features)": {
+      "mae_days": 2.517,
+      "rmse_days": 3.03,
+      "r2_score": -1.7882
+    }
+  },
+  "operational_scenarios_evaluation": [
+    {
+      "scenario": "1. Project on schedule (Var = +2%)",
+      "predicted_delay_days": 0.1,
+      "predicted_delay_prob": 0.001,
+      "is_delayed": false,
+      "meets_expectation": true
+    },
+    {
+      "scenario": "2. Slightly behind schedule (Var = -5%)",
+      "predicted_delay_days": 5.31,
+      "predicted_delay_prob": 0.997,
+      "is_delayed": true,
+      "meets_expectation": true
+    },
+    {
+      "scenario": "3. Severely delayed project (Var = -20%)",
+      "predicted_delay_days": 13.17,
+      "predicted_delay_prob": 0.806,
+      "is_delayed": true,
+      "meets_expectation": true
+    },
+    {
+      "scenario": "4. Early stage (Site Prep / Excavation)",
+      "predicted_delay_days": 0.23,
+      "predicted_delay_prob": 0.001,
+      "is_delayed": false,
+      "meets_expectation": true
+    },
+    {
+      "scenario": "5. Late stage (Finishing / Electrical)",
+      "predicted_delay_days": 1.64,
+      "predicted_delay_prob": 0.003,
+      "is_delayed": false,
+      "meets_expectation": true
+    },
+    {
+      "scenario": "6. High safety violations (12 viols, 4 stops)",
+      "predicted_delay_days": 2.09,
+      "predicted_delay_prob": 0.004,
+      "is_delayed": false,
+      "meets_expectation": false
+    },
+    {
+      "scenario": "7. Low safety violations (0 viols)",
+      "predicted_delay_days": 0.21,
+      "predicted_delay_prob": 0.001,
+      "is_delayed": false,
+      "meets_expectation": true
+    },
+    {
+      "scenario": "8. Progress suddenly decreases (inspection rollback)",
+      "predicted_delay_days": 12.8,
+      "predicted_delay_prob": 0.998,
+      "is_delayed": true,
+      "meets_expectation": true
+    },
+    {
+      "scenario": "9. Worker count drops (crew shortage: 3 workers)",
+      "predicted_delay_days": 1.97,
+      "predicted_delay_prob": 0.004,
+      "is_delayed": false,
+      "meets_expectation": false
+    },
+    {
+      "scenario": "10. Missing feature values default replacement",
+      "predicted_delay_days": 0.3,
+      "predicted_delay_prob": 0.001,
+      "is_delayed": false,
+      "meets_expectation": true
+    },
+    {
+      "scenario": "11. Noisy sensor input (fluctuations +-3%)",
+      "predicted_delay_days": 2.76,
+      "predicted_delay_prob": 0.45,
+      "is_delayed": false,
+      "meets_expectation": true
+    },
+    {
+      "scenario": "12. Extreme values outside training bounds",
+      "predicted_delay_days": 13.22,
+      "predicted_delay_prob": 0.813,
+      "is_delayed": true,
+      "meets_expectation": true
+    }
+  ],
+  "status": "PASS WITH LIMITATIONS",
+  "limitations": [
+    "Heavy reliance on progress_variance (variance between planned and actual completion). While progress variance is directly informative of historical deviation, forward predictions should incorporate external weather forecasts and material lead times.",
+    "Synthetic training distribution represents standard commercial construction schedules; extreme catastrophic events (e.g. seismic stoppages or legal injunctions) require out-of-distribution transfer bounds."
+  ]
+}

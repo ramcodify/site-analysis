@@ -1,0 +1,76 @@
+{
+  "model_path": "data/models/ppe_model.pt",
+  "model_architecture": "YOLO11/YOLOv8 Multi-Class Ensemble",
+  "dataset": "Personal Protective Equipment - Combined Model.v8i.yolov12",
+  "split": "test",
+  "total_test_images": 4423,
+  "sample_verified": 200,
+  "sample_detections": 262,
+  "inference_latency_ms": 96.28,
+  "classes": [
+    "Person",
+    "Hardhat",
+    "Safety Vest",
+    "Gloves",
+    "Mask",
+    "NO-Hardhat",
+    "NO-Safety Vest",
+    "Safety Cone"
+  ],
+  "overall": {
+    "precision": 0.977,
+    "recall": 0.91,
+    "map50": 0.989,
+    "map50_95": 0.915
+  },
+  "per_class": {
+    "Person": {
+      "precision": 0.982,
+      "recall": 1.0,
+      "map50": 0.995,
+      "map50_95": 0.968
+    },
+    "Hardhat": {
+      "precision": 0.937,
+      "recall": 1.0,
+      "map50": 0.995,
+      "map50_95": 0.926
+    },
+    "Safety Vest": {
+      "precision": 0.973,
+      "recall": 1.0,
+      "map50": 0.995,
+      "map50_95": 0.991
+    },
+    "Gloves": {
+      "precision": 1.0,
+      "recall": 0.944,
+      "map50": 0.965,
+      "map50_95": 0.83
+    },
+    "Mask": {
+      "precision": 1.0,
+      "recall": 0.393,
+      "map50": 0.995,
+      "map50_95": 0.861
+    },
+    "NO-Hardhat": {
+      "precision": 0.961,
+      "recall": 0.98,
+      "map50": 0.985,
+      "map50_95": 0.902
+    },
+    "NO-Safety Vest": {
+      "precision": 0.975,
+      "recall": 0.988,
+      "map50": 0.99,
+      "map50_95": 0.912
+    },
+    "Safety Cone": {
+      "precision": 0.99,
+      "recall": 0.975,
+      "map50": 0.992,
+      "map50_95": 0.934
+    }
+  }
+}

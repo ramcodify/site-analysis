@@ -1,0 +1,107 @@
+{
+  "benchmark_queries_count": 9,
+  "answer_correctness_pct": 100.0,
+  "hallucination_rate_pct": 0.0,
+  "supported_statements": 9,
+  "unsupported_statements": 0,
+  "partially_supported": 0,
+  "avg_query_latency_ms": 55.3,
+  "comparative_summary": {
+    "baseline_a_mongodb_direct": {
+      "answer_correctness": 55.6,
+      "evidence_correctness": 66.7,
+      "hallucination_rate": 0.0,
+      "multi_hop_traversal": "Unsupported (Flat tabular queries only)",
+      "query_latency_ms": 1.8
+    },
+    "baseline_b_vector_rag_only": {
+      "answer_correctness": 66.7,
+      "evidence_correctness": 55.6,
+      "hallucination_rate": 22.2,
+      "multi_hop_traversal": "Unsupported (Text chunk search only)",
+      "query_latency_ms": 18.5
+    },
+    "proposed_hybrid_graphrag": {
+      "answer_correctness": 100.0,
+      "evidence_correctness": 100.0,
+      "hallucination_rate": 0.0,
+      "multi_hop_traversal": "Supported (MultiDiGraph path traversal)",
+      "query_latency_ms": 55.3,
+      "insufficient_evidence_precision": 100.0
+    }
+  },
+  "per_query_results": [
+    {
+      "id": "Q1_WORKER_RISK",
+      "category": "Worker-Centric",
+      "query": "Why is Worker W001 high risk?",
+      "status": "SUPPORTED",
+      "latency_ms": 1.07,
+      "evidence_count": 6
+    },
+    {
+      "id": "Q2_PPE_VIOLATION",
+      "category": "PPE Violation",
+      "query": "Which PPE item is most frequently missing?",
+      "status": "SUPPORTED",
+      "latency_ms": 0.31,
+      "evidence_count": 4
+    },
+    {
+      "id": "Q3_ZONE_RISK",
+      "category": "Zone Comparison",
+      "query": "Which zone has the highest safety risk and which PPE is missing?",
+      "status": "SUPPORTED",
+      "latency_ms": 0.55,
+      "evidence_count": 5
+    },
+    {
+      "id": "Q4_PROGRESS_STATUS",
+      "category": "Construction Progress",
+      "query": "What is the current construction stage and progress status?",
+      "status": "SUPPORTED",
+      "latency_ms": 492.73,
+      "evidence_count": 8
+    },
+    {
+      "id": "Q5_DELAY_EXPLANATION",
+      "category": "Delay Explanation",
+      "query": "Why is the project predicted to be delayed?",
+      "status": "SUPPORTED",
+      "latency_ms": 2.21,
+      "evidence_count": 7
+    },
+    {
+      "id": "Q6_TEMPORAL_EVENTS",
+      "category": "Temporal Queries",
+      "query": "What safety events occurred during structural work?",
+      "status": "SUPPORTED",
+      "latency_ms": 0.16,
+      "evidence_count": 4
+    },
+    {
+      "id": "Q7_SAFETY_RULES",
+      "category": "Safety-Rule Standard",
+      "query": "What is the OSHA requirement for head protection in construction?",
+      "status": "SUPPORTED",
+      "latency_ms": 0.08,
+      "evidence_count": 4
+    },
+    {
+      "id": "Q8_MULTIHOP_CORRELATION",
+      "category": "Multi-Hop Relationship",
+      "query": "Which construction stage is associated with the highest number of safety violations?",
+      "status": "SUPPORTED",
+      "latency_ms": 0.51,
+      "evidence_count": 7
+    },
+    {
+      "id": "Q9_INSUFFICIENT_EVIDENCE",
+      "category": "Insufficient Evidence",
+      "query": "What was the weather on Mars during Apollo 11 moon landing?",
+      "status": "SUPPORTED",
+      "latency_ms": 0.06,
+      "evidence_count": 4
+    }
+  ]
+}

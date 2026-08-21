@@ -1,0 +1,232 @@
+{
+  "module": "Construction Progress Recognition",
+  "evaluation_timestamp": "2026-08-21T16:42:45Z",
+  "model_architecture": "ConstructionStageClassifier (Conv3-BatchNorm-ReLU-Linear)",
+  "num_classes": 9,
+  "stages": [
+    "Site Preparation",
+    "Excavation",
+    "Foundation",
+    "Structural Work",
+    "Brickwork",
+    "Roofing",
+    "Plastering",
+    "Electrical and Plumbing",
+    "Finishing"
+  ],
+  "total_test_samples": 72,
+  "overall_accuracy": 0.8889,
+  "macro_f1_score": 0.8519,
+  "per_stage_metrics": {
+    "Site Preparation": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 8,
+      "true_positives": 8,
+      "false_positives": 0,
+      "false_negatives": 0
+    },
+    "Excavation": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 8,
+      "true_positives": 8,
+      "false_positives": 0,
+      "false_negatives": 0
+    },
+    "Foundation": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 8,
+      "true_positives": 8,
+      "false_positives": 0,
+      "false_negatives": 0
+    },
+    "Structural Work": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 8,
+      "true_positives": 8,
+      "false_positives": 0,
+      "false_negatives": 0
+    },
+    "Brickwork": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 8,
+      "true_positives": 8,
+      "false_positives": 0,
+      "false_negatives": 0
+    },
+    "Roofing": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 8,
+      "true_positives": 8,
+      "false_positives": 0,
+      "false_negatives": 0
+    },
+    "Plastering": {
+      "precision": 0.5,
+      "recall": 1.0,
+      "f1_score": 0.6667,
+      "support": 8,
+      "true_positives": 8,
+      "false_positives": 8,
+      "false_negatives": 0
+    },
+    "Electrical and Plumbing": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 8,
+      "true_positives": 8,
+      "false_positives": 0,
+      "false_negatives": 0
+    },
+    "Finishing": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "support": 8,
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 8
+    }
+  },
+  "confusion_matrix": [
+    [
+      8,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      8,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      8,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      8,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      8,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      8,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      8,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      8,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      8,
+      0,
+      0
+    ]
+  ],
+  "plastering_finishing_confusion_analysis": {
+    "plastering_samples_total": 8,
+    "finishing_samples_total": 8,
+    "plastering_classified_as_finishing_count": 0,
+    "finishing_classified_as_plastering_count": 8,
+    "plastering_correct_count": 8,
+    "finishing_correct_count": 0,
+    "plastering_confusion_rate_pct": 0.0,
+    "finishing_confusion_rate_pct": 100.0,
+    "root_cause": "Visual similarity in wall textures: Smooth cured gypsum/cement plaster resembles unpainted drywall and prime-coated interior finishing surfaces. Single-frame 2D texture features lack depth cues differentiating raw plaster from final matte paint coats without temporal sequence context or multi-modal edge features.",
+    "mitigation_strategies": [
+      "1. Temporal Majority Voting over video frames to prevent transient classification switches.",
+      "2. Confidence Entropy Gating: When softmax entropy between Plastering and Finishing < 0.15, output 'UNCERTAIN_INTERIOR_PROGRESS' instead of forcing false stage transition.",
+      "3. Multi-label activity recognition for simultaneous trade presence (e.g. electrical conduits during late plastering)."
+    ]
+  },
+  "calibrated_improvement_evaluation": {
+    "raw_model_accuracy": 0.8889,
+    "calibrated_high_confidence_accuracy": 0.8889,
+    "uncertain_fallback_count": 0,
+    "uncertain_fallback_rate_pct": 0.0
+  },
+  "status": "PASS WITH LIMITATIONS",
+  "limitations": [
+    "Plastering and Finishing stages exhibit high visual covariance on smooth wall textures without color chroma features.",
+    "Single-frame classification assumes a single monolithic stage across the entire scene, which can produce ambiguity when structural framing and MEP rough-in occur concurrently in different sections of the frame.",
+    "Extreme lighting variations (e.g. harsh sunlight shadows through scaffolding) alter edge gradients of foundation vs brickwork."
+  ]
+}

@@ -1,0 +1,99 @@
+{
+  "ppe_class_distribution": {
+    "person": {
+      "train": 210,
+      "val": 30,
+      "test": 60
+    },
+    "helmet": {
+      "train": 148,
+      "val": 19,
+      "test": 43
+    },
+    "safety_vest": {
+      "train": 150,
+      "val": 20,
+      "test": 36
+    },
+    "gloves": {
+      "train": 306,
+      "val": 42,
+      "test": 80
+    },
+    "face_mask": {
+      "train": 114,
+      "val": 17,
+      "test": 26
+    }
+  },
+  "progress_stage_distribution": {
+    "Site Preparation": {
+      "train": 28,
+      "val": 4,
+      "test": 8
+    },
+    "Excavation": {
+      "train": 28,
+      "val": 4,
+      "test": 8
+    },
+    "Foundation": {
+      "train": 28,
+      "val": 4,
+      "test": 8
+    },
+    "Structural Work": {
+      "train": 28,
+      "val": 4,
+      "test": 8
+    },
+    "Brickwork": {
+      "train": 28,
+      "val": 4,
+      "test": 8
+    },
+    "Roofing": {
+      "train": 28,
+      "val": 4,
+      "test": 8
+    },
+    "Plastering": {
+      "train": 28,
+      "val": 4,
+      "test": 8
+    },
+    "Electrical and Plumbing": {
+      "train": 28,
+      "val": 4,
+      "test": 8
+    },
+    "Finishing": {
+      "train": 28,
+      "val": 4,
+      "test": 8
+    }
+  },
+  "classes": [
+    "person",
+    "helmet",
+    "safety_vest",
+    "gloves",
+    "face_mask"
+  ],
+  "stages": [
+    "Site Preparation",
+    "Excavation",
+    "Foundation",
+    "Structural Work",
+    "Brickwork",
+    "Roofing",
+    "Plastering",
+    "Electrical and Plumbing",
+    "Finishing"
+  ],
+  "imbalance_metrics": {
+    "total_ppe_train_instances": 928,
+    "total_ppe_val_instances": 128,
+    "total_ppe_test_instances": 245
+  }
+}

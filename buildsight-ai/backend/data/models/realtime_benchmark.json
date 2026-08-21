@@ -1,0 +1,31 @@
+{
+  "module": "Real-Time System Hardware Benchmarks",
+  "hardware": "AMD Ryzen 5 8645HS with Radeon 760M Graphics (12 Cores)",
+  "ram_gb": 13.41,
+  "os": "Linux 7.1.8-arch1-3",
+  "benchmarks": {
+    "640x480_SD": {
+      "avg_latency_ms": 41.76,
+      "median_latency_ms": 40.83,
+      "p95_latency_ms": 48.22,
+      "fps": 23.9
+    },
+    "1280x720_HD": {
+      "avg_latency_ms": 36.69,
+      "median_latency_ms": 35.61,
+      "p95_latency_ms": 42.38,
+      "fps": 27.3
+    },
+    "1920x1080_FHD": {
+      "avg_latency_ms": 39.73,
+      "median_latency_ms": 39.74,
+      "p95_latency_ms": 41.35,
+      "fps": 25.2
+    },
+    "graphrag_query": {
+      "avg_latency_ms": 1.07,
+      "median_latency_ms": 1.05,
+      "p95_latency_ms": 1.82
+    }
+  }
+}

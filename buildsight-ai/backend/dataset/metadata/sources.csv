@@ -1,0 +1,3 @@
+Source Name,Type,License,Train Images,Val Images,Test Images,Target Classes
+BuildSight-Synthetic-Augmented,Synthetic+Webcam Augmentation,Academic / Research Use,210,30,60,"person,helmet,safety_vest,gloves,face_mask"
+BuildSight-Progress-Stages-v1,Multi-Phase Construction Site,Academic / Research Use,252,36,72,9 Construction Stages (Site Prep to Finishing)

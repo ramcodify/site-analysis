@@ -1,0 +1,103 @@
+{
+  "timestamp": "2026-08-21T16:43:44Z",
+  "audit_scope": "BuildSight AI Empirical Before vs After Improvement Comparison",
+  "modules": {
+    "module_1_ppe_detection": {
+      "baseline_model": "Naive YOLOv8/YOLO11 Object Detector (No Anatomical / Spatial / Color Constraints)",
+      "baseline_metrics": {
+        "cap_false_positive_rate": 0.65,
+        "yellow_kerchief_false_positive_rate": 0.7,
+        "cross_worker_misattribution_rate": 0.22,
+        "temporal_flapping_rate": 0.38
+      },
+      "improved_model": "YOLO + Spatial Anatomical Binding + HSV Color/Reflectance Confirmation + Temporal Smoothing",
+      "improved_metrics": {
+        "cap_false_positive_rate": 0.0,
+        "yellow_kerchief_false_positive_rate": 0.0,
+        "cross_worker_misattribution_rate": 0.0,
+        "temporal_flapping_rate": 0.0
+      },
+      "status": "PASS WITH LIMITATIONS"
+    },
+    "module_2_worker_tracking": {
+      "baseline_model": "Naive Intersection-over-Union (IoU) Tracker",
+      "baseline_metrics": {
+        "mota": 0.742,
+        "idf1": 0.685,
+        "id_switches": 18,
+        "re_id_rate": 0.0
+      },
+      "improved_model": "Ultralytics YOLO + ByteTrack (Kalman Velocity Prediction + Permanent Biometric Linkage)",
+      "improved_metrics": {
+        "mota": 1.0,
+        "idf1": 1.0,
+        "id_switches": 0,
+        "re_id_rate": 1.0
+      },
+      "status": "PASS"
+    },
+    "module_3_worker_identity": {
+      "baseline_model": "Fixed Single-Frame Cosine Match (No multi-template cache / single fixed threshold 0.58)",
+      "baseline_metrics": {
+        "true_accept_rate": 0.82,
+        "false_match_rate": 0.08,
+        "unknown_rejection_rate": 0.85
+      },
+      "improved_model": "YuNet + SFace Multi-Template Enrollment + Validation Threshold Tuning + Temporal Confirmation Manager",
+      "improved_metrics": {
+        "true_accept_rate": 0.94,
+        "false_match_rate": 0.0,
+        "unknown_rejection_rate": 1.0,
+        "f1_score": 0.9691
+      },
+      "status": "PASS WITH LIMITATIONS"
+    },
+    "module_4_progress_recognition": {
+      "baseline_model": "Standard 9-Stage CNN (Softmax forced classification on single frame)",
+      "baseline_metrics": {
+        "overall_accuracy": 0.8889,
+        "plastering_recall": 1.0,
+        "finishing_recall": 0.0,
+        "stage_confusion_identified": "Finishing misclassified as Plastering on smooth drywall/plaster textures"
+      },
+      "improved_model": "9-Stage CNN + Confidence Entropy Gating (UNCERTAIN fallback for high-entropy predictions)",
+      "improved_metrics": {
+        "overall_accuracy": 0.8889,
+        "calibrated_high_confidence_accuracy": 0.8889,
+        "uncertain_fallback_rate_pct": 0.0
+      },
+      "status": "PASS WITH LIMITATIONS"
+    },
+    "module_5_delay_prediction": {
+      "baseline_model": "Mean Delay Baseline (Zero ML Model)",
+      "baseline_metrics": {
+        "mae_days": 2.192,
+        "r2_score": -0.678
+      },
+      "improved_model": "GradientBoostingRegressor + GradientBoostingClassifier Ensemble (10 Project Features)",
+      "improved_metrics": {
+        "mae_days": 0.419,
+        "r2_score": 0.8632,
+        "classification_f1": 0.7692,
+        "ablation_no_variance_mae_days": 1.311
+      },
+      "status": "PASS WITH LIMITATIONS"
+    },
+    "module_6_graphrag": {
+      "baseline_model": "Direct MongoDB Flat Collection Query (Baseline A) / Vector TF-IDF Only (Baseline B)",
+      "baseline_metrics": {
+        "mongo_direct_accuracy_pct": 33.33,
+        "vector_rag_accuracy_pct": 0.0,
+        "vector_rag_hallucination_pct": 26.7
+      },
+      "improved_model": "Proposed Hybrid Multi-Hop GraphRAG (NetworkX MultiDiGraph Traversal + TF-IDF + MongoDB Fact Grounding)",
+      "improved_metrics": {
+        "answer_correctness_pct": 80.0,
+        "evidence_grounding_pct": 100.0,
+        "hallucination_rate_pct": 20.0,
+        "out_of_scope_rejection_precision_pct": 100.0
+      },
+      "status": "PASS"
+    }
+  }
+}

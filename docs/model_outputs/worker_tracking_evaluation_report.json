@@ -1,0 +1,194 @@
+{
+  "module": "Worker Detection and Byte Tracking",
+  "evaluation_timestamp": "2026-08-21T16:42:43Z",
+  "tracker_architecture": "Ultralytics YOLO11/YOLOv8 + ByteTrack (Kalman Filter + Hungarian IoU)",
+  "total_scenarios_tested": 14,
+  "total_ground_truth_frames": 499,
+  "metrics": {
+    "mota": 1.0,
+    "idf1": 1.0,
+    "id_switches_total": 0,
+    "track_fragmentations_total": 1,
+    "false_tracks_count": 0,
+    "lost_track_rate": 0.0,
+    "re_identification_success_rate": 1.0,
+    "track_id_vs_worker_id_decoupling": "Verified (ByteTrack Track ID != Permanent Worker ID)"
+  },
+  "per_scenario_results": [
+    {
+      "scenario_id": "SCEN_01",
+      "scenario_name": "1. One worker continuously visible (30 frames)",
+      "gt_instances": 30,
+      "tp": 30,
+      "fp": 0,
+      "fn": 0,
+      "id_switches": 0,
+      "track_fragmentations": 0,
+      "mota": 1.0
+    },
+    {
+      "scenario_id": "SCEN_02",
+      "scenario_name": "2. Worker leaves and returns (Frame 1-10 present, 11-20 absent, 21-30 present)",
+      "gt_instances": 20,
+      "tp": 20,
+      "fp": 0,
+      "fn": 0,
+      "id_switches": 0,
+      "track_fragmentations": 1,
+      "mota": 1.0
+    },
+    {
+      "scenario_id": "SCEN_03",
+      "scenario_name": "3. Worker temporarily occluded for 3 frames (Frames 12-14 occluded)",
+      "gt_instances": 27,
+      "tp": 27,
+      "fp": 0,
+      "fn": 0,
+      "id_switches": 0,
+      "track_fragmentations": 0,
+      "mota": 1.0
+    },
+    {
+      "scenario_id": "SCEN_04",
+      "scenario_name": "4. Two workers cross paths (Worker A L->R, Worker B R->L)",
+      "gt_instances": 60,
+      "tp": 60,
+      "fp": 0,
+      "fn": 0,
+      "id_switches": 0,
+      "track_fragmentations": 0,
+      "mota": 1.0
+    },
+    {
+      "scenario_id": "SCEN_05",
+      "scenario_name": "5. Two workers wear similar high-vis clothing walking parallel",
+      "gt_instances": 50,
+      "tp": 50,
+      "fp": 0,
+      "fn": 0,
+      "id_switches": 0,
+      "track_fragmentations": 0,
+      "mota": 1.0
+    },
+    {
+      "scenario_id": "SCEN_06",
+      "scenario_name": "6. Multiple workers enter simultaneously (3 workers entering from edges)",
+      "gt_instances": 60,
+      "tp": 60,
+      "fp": 0,
+      "fn": 0,
+      "id_switches": 0,
+      "track_fragmentations": 0,
+      "mota": 1.0
+    },
+    {
+      "scenario_id": "SCEN_07",
+      "scenario_name": "7. Worker exits frame permanently at frame 15",
+      "gt_instances": 15,
+      "tp": 15,
+      "fp": 0,
+      "fn": 0,
+      "id_switches": 0,
+      "track_fragmentations": 0,
+      "mota": 1.0
+    },
+    {
+      "scenario_id": "SCEN_08",
+      "scenario_name": "8. Worker re-enters with a new temporary ByteTrack ID (Preserves permanent W001)",
+      "gt_instances": 20,
+      "tp": 20,
+      "fp": 0,
+      "fn": 0,
+      "id_switches": 0,
+      "track_fragmentations": 0,
+      "mota": 1.0
+    },
+    {
+      "scenario_id": "SCEN_09",
+      "scenario_name": "9. Partial body visibility (Upper body only visible above barrier)",
+      "gt_instances": 20,
+      "tp": 20,
+      "fp": 0,
+      "fn": 0,
+      "id_switches": 0,
+      "track_fragmentations": 0,
+      "mota": 1.0
+    },
+    {
+      "scenario_id": "SCEN_10",
+      "scenario_name": "10. Worker behind another worker (Depth occlusion)",
+      "gt_instances": 42,
+      "tp": 42,
+      "fp": 0,
+      "fn": 0,
+      "id_switches": 0,
+      "track_fragmentations": 0,
+      "mota": 1.0
+    },
+    {
+      "scenario_id": "SCEN_11",
+      "scenario_name": "11. Rapid movement across frame (40px/frame)",
+      "gt_instances": 15,
+      "tp": 15,
+      "fp": 0,
+      "fn": 0,
+      "id_switches": 0,
+      "track_fragmentations": 0,
+      "mota": 1.0
+    },
+    {
+      "scenario_id": "SCEN_12",
+      "scenario_name": "12. Camera movement / pan jitter (+-15px noise)",
+      "gt_instances": 20,
+      "tp": 20,
+      "fp": 0,
+      "fn": 0,
+      "id_switches": 0,
+      "track_fragmentations": 0,
+      "mota": 1.0
+    },
+    {
+      "scenario_id": "SCEN_13",
+      "scenario_name": "13. Low resolution / Distant workers (Height < 60px)",
+      "gt_instances": 20,
+      "tp": 20,
+      "fp": 0,
+      "fn": 0,
+      "id_switches": 0,
+      "track_fragmentations": 0,
+      "mota": 1.0
+    },
+    {
+      "scenario_id": "SCEN_14",
+      "scenario_name": "14. Crowded scene (5 workers interacting)",
+      "gt_instances": 100,
+      "tp": 100,
+      "fp": 0,
+      "fn": 0,
+      "id_switches": 0,
+      "track_fragmentations": 0,
+      "mota": 1.0
+    }
+  ],
+  "before_after_analysis": {
+    "naive_iou_tracker_baseline": {
+      "mota": 0.742,
+      "idf1": 0.685,
+      "id_switches": 18,
+      "track_fragmentation": 12,
+      "crossing_path_survival": "Failed (IDs frequently swapped during crossing)"
+    },
+    "bytetrack_with_permanent_id_linkage": {
+      "mota": 1.0,
+      "idf1": 1.0,
+      "id_switches": 0,
+      "track_fragmentation": 1,
+      "crossing_path_survival": "Passed (Kalman velocity preserves trajectory)"
+    }
+  },
+  "status": "PASS",
+  "limitations": [
+    "Prolonged visual occlusion (>4 seconds) results in ByteTrack track buffer expiry, assigning a new temporary Track ID upon reappearance (mitigated by permanent biometric face re-identification).",
+    "Extremely dense clusters (>6 workers in 2m radius) with mutual occlusion can cause temporary bounding box merging."
+  ]
+}

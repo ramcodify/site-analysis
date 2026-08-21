@@ -1,0 +1,44 @@
+{
+  "hardware": {
+    "cpu_model": "AMD Ryzen 5 8645HS w/ Radeon 760M Graphics",
+    "cpu_count": 12,
+    "ram_total_gb": 13.41,
+    "operating_system": "Linux 7.1.8-arch1-3",
+    "python_version": "3.14.7",
+    "accelerator": "None (CPU Execution)"
+  },
+  "model_file": "/run/media/ram/study/site analysis/buildsight-ai/backend/data/models/ppe_model.pt",
+  "model_size_mb": 5.96,
+  "benchmarks": {
+    "640x480 (SD)": {
+      "resolution": "640x480",
+      "trials_measured": 50,
+      "average_latency_ms": 35.42,
+      "median_latency_ms": 35.92,
+      "p95_latency_ms": 38.89,
+      "min_latency_ms": 29.88,
+      "max_latency_ms": 40.47,
+      "measured_fps": 28.2
+    },
+    "1280x720 (HD)": {
+      "resolution": "1280x720",
+      "trials_measured": 50,
+      "average_latency_ms": 31.26,
+      "median_latency_ms": 31.0,
+      "p95_latency_ms": 34.44,
+      "min_latency_ms": 26.57,
+      "max_latency_ms": 36.09,
+      "measured_fps": 32.0
+    },
+    "1920x1080 (FHD)": {
+      "resolution": "1920x1080",
+      "trials_measured": 50,
+      "average_latency_ms": 32.01,
+      "median_latency_ms": 31.24,
+      "p95_latency_ms": 37.42,
+      "min_latency_ms": 27.68,
+      "max_latency_ms": 51.14,
+      "measured_fps": 31.2
+    }
+  }
+}
