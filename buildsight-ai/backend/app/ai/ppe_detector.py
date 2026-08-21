@@ -158,7 +158,7 @@ class PPEDetector:
             # 1. Primary multi-class model (with explicit negative class discrimination)
             results = self._model(
                 frame,
-                conf=0.20,  # Low threshold to capture negative classes reliably
+                conf=0.15,  # Capture low-confidence vest detections and negative classes reliably
                 verbose=False,
                 device="cpu",
             )
@@ -186,23 +186,25 @@ class PPEDetector:
                             detections.append(PPEDetection(class_id=-4, class_name="no_face_mask", bbox=(x1, y1, x2, y2), confidence=conf))
                         continue
 
-                    # Positive detections with balanced confidence gating
+                    # Positive detections with precision gating:
+                    # - Helmets require higher confidence (>= 0.38) to suppress casual baseball caps
+                    # - Safety Vests allow sensitive detection (>= 0.18) so high-vis jackets are never missed
                     std_name = None
                     std_id = None
 
-                    if ("helmet" in cname or "hardhat" in cname) and conf >= 0.30:
+                    if ("helmet" in cname or "hardhat" in cname) and conf >= 0.38:
                         std_name = "helmet"
                         std_id = 1
-                    elif ("vest" in cname or "jacket" in cname) and conf >= 0.30:
+                    elif ("vest" in cname or "jacket" in cname) and conf >= 0.18:
                         std_name = "safety_vest"
                         std_id = 2
-                    elif "glove" in cname and conf >= 0.30:
+                    elif "glove" in cname and conf >= 0.25:
                         std_name = "gloves"
                         std_id = 3
-                    elif "mask" in cname and conf >= 0.30:
+                    elif "mask" in cname and conf >= 0.25:
                         std_name = "face_mask"
                         std_id = 4
-                    elif ("person" in cname or "human" in cname) and conf >= 0.35:
+                    elif ("person" in cname or "human" in cname) and conf >= 0.30:
                         std_name = "person"
                         std_id = 0
 
@@ -214,12 +216,12 @@ class PPEDetector:
                             confidence=conf,
                         ))
 
-            # 2. Auxiliary model — Enriches PPE coverage on distant and dark video streams
+            # 2. Auxiliary model — Enriches PPE coverage on distant, angled, and low-light video streams
             if self._aux_model is not None:
                 try:
                     aux_res = self._aux_model(
                         frame,
-                        conf=0.30,
+                        conf=0.20,
                         verbose=False,
                         device="cpu",
                     )
@@ -232,16 +234,16 @@ class PPEDetector:
 
                             std_name = None
                             std_id = None
-                            if ("helmet" in cname or "hardhat" in cname) and conf >= 0.30:
+                            if ("helmet" in cname or "hardhat" in cname) and conf >= 0.38:
                                 std_name = "helmet"
                                 std_id = 1
-                            elif ("vest" in cname or "jacket" in cname) and conf >= 0.30:
+                            elif ("vest" in cname or "jacket" in cname) and conf >= 0.18:
                                 std_name = "safety_vest"
                                 std_id = 2
-                            elif "glove" in cname and "no" not in cname and conf >= 0.30:
+                            elif "glove" in cname and "no" not in cname and conf >= 0.25:
                                 std_name = "gloves"
                                 std_id = 3
-                            elif "mask" in cname and "no" not in cname and conf >= 0.30:
+                            elif "mask" in cname and "no" not in cname and conf >= 0.25:
                                 std_name = "face_mask"
                                 std_id = 4
 
@@ -337,6 +339,50 @@ class PPEDetector:
                     elif item == "safety_vest":
                         candidate_vest_bbox = (dx1, dy1, dx2, dy2)
 
+        # ── Direct Torso High-Vis Multi-Spectrum Vest Booster ──
+        # Guarantees safety vest detection even if YOLO misses the bounding box (e.g. angled worker, low lighting, holding tools)
+        if frame is not None and frame.size > 0 and not np.all(frame == 0):
+            fh, fw = frame.shape[:2]
+            tx1 = max(0, min(fw - 1, int(wx1 + 0.10 * ww)))
+            tx2 = max(0, min(fw, int(wx2 - 0.10 * ww)))
+            ty1 = max(0, min(fh - 1, int(wy1 + 0.18 * wh)))
+            ty2 = max(0, min(fh, int(wy1 + 0.72 * wh)))
+
+            if (tx2 - tx1) > 10 and (ty2 - ty1) > 10:
+                torso_crop = frame[ty1:ty2, tx1:tx2]
+                try:
+                    thsv = cv2.cvtColor(torso_crop, cv2.COLOR_BGR2HSV)
+                    th, ts, tv = cv2.split(thsv)
+                    tr, tg, tb = torso_crop[:, :, 2], torso_crop[:, :, 1], torso_crop[:, :, 0]
+
+                    # 1. Fluorescent Neon Lime / High-Vis Yellow:
+                    lime_yellow_mask = ((th >= 20) & (th <= 88) & (ts >= 22) & (tv >= 30)) | ((tg > tr) & (tg > tb + 12) & (tg > 50))
+
+                    # 2. Safety Traffic Orange:
+                    orange_mask = ((th >= 3) & (th <= 25) & (ts >= 28) & (tv >= 30)) | ((tr > 120) & (tg >= 40) & (tg <= 180) & (tb < 110))
+
+                    # 3. High-Vis Safety Red:
+                    red_mask = ((th <= 8) | (th >= 165)) & (ts >= 35) & (tv >= 35)
+
+                    # 4. Surveyor High-Vis Blue:
+                    blue_mask = (th >= 95) & (th <= 135) & (ts >= 30) & (tv >= 35)
+
+                    # 5. Retro-Reflective Silver / White Safety Stripes:
+                    silver_tape_mask = (ts <= 35) & (tv >= 150)
+
+                    hivis_pixels = np.count_nonzero(lime_yellow_mask | orange_mask | red_mask | blue_mask | silver_tape_mask)
+                    total_torso_pixels = max(1, (tx2 - tx1) * (ty2 - ty1))
+                    hivis_torso_ratio = hivis_pixels / total_torso_pixels
+
+                    if hivis_torso_ratio >= 0.045:
+                        boosted_conf = round(min(0.96, 0.65 + hivis_torso_ratio * 0.6), 2)
+                        if not results["safety_vest"]["detected"] or boosted_conf > results["safety_vest"]["confidence"]:
+                            results["safety_vest"]["detected"] = True
+                            results["safety_vest"]["confidence"] = boosted_conf
+                            negatives["no_safety_vest"] = 0.0  # Clear false negative
+                except Exception as e:
+                    logger.debug(f"Torso vest booster note: {e}")
+
         # ── Strict Rigid Hardhat vs Baseball Cap / Kerchief / Soft Cap Verification ──
         if results["helmet"]["detected"] and candidate_helmet_bbox is not None:
             hx1, hy1, hx2, hy2 = candidate_helmet_bbox
@@ -345,25 +391,29 @@ class PPEDetector:
 
             # 1. Aspect ratio check (industrial hardhats are dome-shaped)
             aspect = helmet_w / helmet_h
-            if aspect < 0.50 or aspect > 3.2:
+            if aspect < 0.50 or aspect > 3.0:
                 results["helmet"]["detected"] = False
                 results["helmet"]["confidence"] = 0.0
 
-            # 2. Geometric clearance relative to face (if frontal face detected)
+            # 2. Worker body-relative height: Hardhat shell + suspension occupies at least 7% of total body height
+            if (helmet_h / wh) < 0.065:
+                logger.info(f"🚫 Shallow Headwear/Cap detected: crown height too flat ({helmet_h/wh:.1%} < 6.5%)")
+                results["helmet"]["detected"] = False
+                results["helmet"]["confidence"] = 0.0
+
+            # 3. Geometric clearance relative to face brow (if frontal face detected)
             if results["helmet"]["detected"] and face_bbox is not None:
                 fx1, fy1, fx2, fy2 = face_bbox
-                face_w = max(1.0, fx2 - fx1)
                 face_h = max(1.0, fy2 - fy1)
-
                 rise_above_face = fy1 - hy1
-                # A true rigid industrial hardhat rises above the brow
-                # A tied cloth/kerchief sits directly flush against the forehead
-                if rise_above_face < 0.10 * face_h:
-                    logger.info(f"🚫 Cap/Cloth detected on worker: low crown height ({rise_above_face:.1f}px < {0.10*face_h:.1f}px)")
+                # A true rigid industrial hardhat with suspension sits well above the brow line
+                # Soft cloth wraps or caps sit directly on the forehead
+                if rise_above_face < 0.12 * face_h:
+                    logger.info(f"🚫 Cap/Cloth detected: low suspension clearance ({rise_above_face:.1f}px < {0.12*face_h:.1f}px)")
                     results["helmet"]["detected"] = False
                     results["helmet"]["confidence"] = 0.0
 
-            # 3. Visual Color, Reflectance, and Dark Cap Suppression
+            # 4. Visual Color, Reflectance, and Dark Cap Suppression
             if results["helmet"]["detected"] and frame is not None and frame.size > 0 and not np.all(frame == 0):
                 fh, fw = frame.shape[:2]
                 ix1 = max(0, min(fw - 1, int(hx1)))
@@ -380,62 +430,40 @@ class PPEDetector:
                         avg_s = float(np.mean(s))
                         avg_h = float(np.mean(h))
 
-                        # Dark baseball caps (black, dark navy, dark grey, dark brown)
-                        if avg_v < 40:
-                            logger.info(f"🚫 Dark Cap detected on worker: brightness too low for safety hardhat (V={avg_v:.1f})")
+                        # Dark baseball caps (black, dark navy, dark charcoal, dark brown)
+                        if avg_v < 45:
+                            logger.info(f"🚫 Dark Baseball Cap detected: brightness too low for certified safety hardhat (V={avg_v:.1f})")
+                            results["helmet"]["detected"] = False
+                            results["helmet"]["confidence"] = 0.0
+                        # Dull, washed-out casual fabric caps (khaki, faded denim, grey cloth)
+                        elif avg_s < 26 and avg_v < 68:
+                            logger.info(f"🚫 Casual Fabric Cap detected: dull saturation (S={avg_s:.1f}, V={avg_v:.1f})")
                             results["helmet"]["detected"] = False
                             results["helmet"]["confidence"] = 0.0
                         else:
-                            # Certified safety hardhat standard colors (illumination-invariant):
-                            is_yellow = (14 <= avg_h <= 48) and (avg_s >= 25) and (avg_v >= 45)
-                            is_orange = (4 <= avg_h <= 20) and (avg_s >= 35) and (avg_v >= 45)
-                            is_blue = (90 <= avg_h <= 140) and (avg_s >= 25) and (avg_v >= 40)
-                            is_red = ((avg_h <= 10) or (avg_h >= 160)) and (avg_s >= 35) and (avg_v >= 40)
-                            is_white = (avg_s <= 55) and (avg_v >= 70)
-                            is_green = (42 <= avg_h <= 88) and (avg_s >= 25) and (avg_v >= 45)
+                            # Certified safety hardhat standard colors:
+                            is_yellow = (14 <= avg_h <= 48) and (avg_s >= 28) and (avg_v >= 45)
+                            is_orange = (4 <= avg_h <= 22) and (avg_s >= 35) and (avg_v >= 45)
+                            is_blue = (92 <= avg_h <= 138) and (avg_s >= 28) and (avg_v >= 38)
+                            is_red = ((avg_h <= 10) or (avg_h >= 162)) and (avg_s >= 35) and (avg_v >= 38)
+                            is_white = (avg_s <= 50) and (avg_v >= 65)
+                            is_green = (40 <= avg_h <= 88) and (avg_s >= 28) and (avg_v >= 42)
 
                             if not (is_yellow or is_orange or is_blue or is_red or is_white or is_green):
-                                if avg_v < 60 or (avg_s > 60 and (20 <= avg_h <= 90)):
+                                # Reject unrecognized dull or dark cloth tones
+                                if avg_v < 65 or (avg_s > 50 and (22 <= avg_h <= 88)):
+                                    logger.info(f"🚫 Non-standard Headwear detected: H={avg_h:.1f}, S={avg_s:.1f}, V={avg_v:.1f}")
                                     results["helmet"]["detected"] = False
                                     results["helmet"]["confidence"] = 0.0
                     except Exception:
                         pass
 
-        # ── High-Visibility Safety Vest Illumination-Invariant Verification ──
-        if results["safety_vest"]["detected"] and candidate_vest_bbox is not None and frame is not None and frame.size > 0 and not np.all(frame == 0):
-            vx1, vy1, vx2, vy2 = candidate_vest_bbox
-            fh, fw = frame.shape[:2]
-            ix1 = max(0, min(fw - 1, int(vx1)))
-            iy1 = max(0, min(fh - 1, int(vy1)))
-            ix2 = max(0, min(fw, int(vx2)))
-            iy2 = max(0, min(fh, int(vy2)))
-
-            if (ix2 - ix1) > 15 and (iy2 - iy1) > 15:
-                vcrop = frame[iy1:iy2, ix1:ix2]
-                try:
-                    vhsv = cv2.cvtColor(vcrop, cv2.COLOR_BGR2HSV)
-                    vh, vs, vv = cv2.split(vhsv)
-                    
-                    # High-Vis Lime/Yellow & Safety Orange in varied ambient lighting
-                    yellow_mask = (vh >= 24) & (vh <= 88) & (vs >= 25) & (vv >= 35)
-                    orange_mask = (vh >= 4) & (vh <= 26) & (vs >= 30) & (vv >= 35)
-                    hivis_pixels = np.count_nonzero(yellow_mask | orange_mask)
-                    total_pixels = max(1, (ix2 - ix1) * (iy2 - iy1))
-                    hivis_ratio = hivis_pixels / total_pixels
-
-                    if hivis_ratio < 0.04 and results["safety_vest"]["confidence"] < 0.45:
-                        logger.info(f"🚫 Casual clothing detected (non-vest): fluorescent ratio {hivis_ratio:.1%}")
-                        results["safety_vest"]["detected"] = False
-                        results["safety_vest"]["confidence"] = 0.0
-                except Exception:
-                    pass
-
-        # Negative suppression: cancel if NO-Hardhat or NO-Safety Vest is explicitly detected with high confidence
-        if negatives["no_helmet"] >= 0.40 and negatives["no_helmet"] > results["helmet"]["confidence"]:
+        # Negative suppression: cancel if NO-Hardhat or NO-Safety Vest is explicitly detected
+        if negatives["no_helmet"] >= 0.25 and negatives["no_helmet"] >= results["helmet"]["confidence"] * 0.8:
             results["helmet"]["detected"] = False
             results["helmet"]["confidence"] = 0.0
 
-        if negatives["no_safety_vest"] >= 0.40 and negatives["no_safety_vest"] > results["safety_vest"]["confidence"]:
+        if negatives["no_safety_vest"] >= 0.35 and negatives["no_safety_vest"] > results["safety_vest"]["confidence"]:
             results["safety_vest"]["detected"] = False
             results["safety_vest"]["confidence"] = 0.0
 
