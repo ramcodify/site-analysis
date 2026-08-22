@@ -307,23 +307,23 @@ export default function Workers() {
           {/* VIEW MODE 1: DATA TABLE */}
           {/* ========================================================================= */}
           {viewMode === 'table' && (
-            <div className="card" style={{ overflow: 'auto', padding: 0 }}>
+            <div className="card" style={{ maxHeight: 'calc(100vh - 270px)', minHeight: 420, overflowY: 'auto', overflowX: 'auto', padding: 0, position: 'relative' }}>
               {filteredWorkers.length > 0 ? (
-                <table className="data-table">
-                  <thead>
+                <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--bg-card, #111827)' }}>
                     <tr>
-                      <th style={{ width: 56 }}>Photo</th>
-                      <th>Permanent ID</th>
-                      <th>Identity Name</th>
-                      <th>Track ID</th>
-                      <th>Risk Level</th>
-                      <th>Risk Score</th>
-                      <th>Hardhat</th>
-                      <th>Safety Vest</th>
-                      <th>Live Status</th>
-                      <th>Violations</th>
-                      <th>Duration</th>
-                      <th>Actions</th>
+                      <th style={{ width: 56, background: 'var(--bg-card, #111827)' }}>Photo</th>
+                      <th style={{ background: 'var(--bg-card, #111827)' }}>Permanent ID</th>
+                      <th style={{ background: 'var(--bg-card, #111827)' }}>Identity Name</th>
+                      <th style={{ background: 'var(--bg-card, #111827)' }}>Track ID</th>
+                      <th style={{ background: 'var(--bg-card, #111827)' }}>Risk Level</th>
+                      <th style={{ background: 'var(--bg-card, #111827)' }}>Risk Score</th>
+                      <th style={{ background: 'var(--bg-card, #111827)' }}>Hardhat</th>
+                      <th style={{ background: 'var(--bg-card, #111827)' }}>Safety Vest</th>
+                      <th style={{ background: 'var(--bg-card, #111827)' }}>Live Status</th>
+                      <th style={{ background: 'var(--bg-card, #111827)' }}>Violations</th>
+                      <th style={{ background: 'var(--bg-card, #111827)' }}>Duration</th>
+                      <th style={{ background: 'var(--bg-card, #111827)' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -444,7 +444,11 @@ export default function Workers() {
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-              gap: 16
+              gap: 16,
+              maxHeight: 'calc(100vh - 270px)',
+              minHeight: 420,
+              overflowY: 'auto',
+              paddingRight: 4
             }}>
               {filteredWorkers.map(w => {
                 const isRegistered = Boolean(w.permanent_worker_id || w.worker_code);
@@ -581,7 +585,19 @@ export default function Workers() {
           {/* WORKER DETAIL INSPECTION DRAWER */}
           {/* ========================================================================= */}
           {selectedWorker && (
-            <div className="card slide-in" style={{ border: `1px solid ${getRiskColor(selectedWorker.risk_level)}50` }}>
+            <div
+              className="card slide-in"
+              style={{
+                border: `1px solid ${getRiskColor(selectedWorker.risk_level)}50`,
+                position: 'sticky',
+                top: 16,
+                maxHeight: 'calc(100vh - 270px)',
+                overflowY: 'auto',
+                alignSelf: 'start',
+                zIndex: 20,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.36)',
+              }}
+            >
               <div className="card-header">
                 <div>
                   <span className="card-title">
