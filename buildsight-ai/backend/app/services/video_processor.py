@@ -544,9 +544,20 @@ class VideoProcessor:
                             worker_id=worker_id,
                             except_violation_id=vid
                         )
-                        # Upsert worker session
+                        # Upsert worker session with full real-time model state
                         WorkerRepository.upsert_worker(
-                            worker_id, self._source, worker_code=worker_code
+                            worker_id,
+                            self._source,
+                            worker_code=worker_code,
+                            photo_url=worker.photo_url,
+                            helmet=worker.helmet,
+                            vest=worker.vest,
+                            gloves=worker.gloves,
+                            face_mask=worker.face_mask,
+                            missing_ppe=worker.missing_ppe,
+                            risk_score=worker.risk_score,
+                            risk_level=worker.risk_level,
+                            compliance_status=worker.compliance_status,
                         )
                         # Save the new violation event once with worker photo attached
                         ViolationRepository.save_violation(
