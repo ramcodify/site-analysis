@@ -80,11 +80,16 @@ class HybridRetriever:
                 safety_interruptions=2,
             )
 
+        track_ids = entities.get("track_ids", [])
+        track_id = track_ids[0] if track_ids else None
+
         return {
             "doc_chunks": doc_chunks,
             "graph_entities": [n.get("node_id", "") for n in graph_nodes],
             "relationships_used": [f"{e['source']} -[{e['relation']}]-> {e['target']}" for e in graph_edges],
             "worker_code": worker_code,
+            "track_id": track_id,
+            "track_ids": track_ids,
             "ppe_frequency": ppe_frequency,
             "delay_prediction": delay_prediction,
             "entities": entities,

@@ -62,14 +62,14 @@ interface SafetyStandardChunk {
 }
 
 const RESEARCH_QUERIES = [
+  'How is Track ID 43?',
   'Why is Worker W001 high risk?',
-  'Why is the project predicted to be delayed?',
+  'Which workers are categorized as Critical or High Risk?',
+  'Who is missing a safety vest or helmet?',
   'Which PPE item is most frequently missing?',
   'Which zone has the highest safety risk and which PPE is missing?',
-  'What safety events occurred during structural work?',
-  'What is the current construction stage and progress status?',
+  'Why is the project predicted to be delayed?',
   'What are the OSHA head protection and hard hat requirements?',
-  'What are the 6-foot fall protection rules in construction?',
 ];
 
 const NODE_COLORS: Record<string, string> = {
@@ -346,10 +346,10 @@ export default function SafetyKnowledge() {
                         )}
                       </div>
 
-                      {/* 2. Model Predictions */}
+                      {/* 2. Model Predictions & Causal Thought */}
                       <div className="card" style={{ background: 'var(--bg-card-subtle)', padding: 14 }}>
                         <div style={{ fontSize: 13, fontWeight: 600, color: '#f59e0b', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                          <Cpu size={16} /> 2. MODEL PREDICTIONS (Delay & Progress ML)
+                          <Cpu size={16} /> 2. AI MODEL PREDICTIONS & CAUSAL THOUGHT
                         </div>
                         {ragResult.model_predictions.length > 0 ? (
                           <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: 'var(--text-secondary)' }}>
