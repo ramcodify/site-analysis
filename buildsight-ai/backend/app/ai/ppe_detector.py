@@ -356,26 +356,26 @@ class PPEDetector:
                     tr, tg, tb = torso_crop[:, :, 2], torso_crop[:, :, 1], torso_crop[:, :, 0]
 
                     # 1. Fluorescent Neon Lime / High-Vis Yellow:
-                    lime_yellow_mask = ((th >= 20) & (th <= 88) & (ts >= 22) & (tv >= 30)) | ((tg > tr) & (tg > tb + 12) & (tg > 50))
+                    lime_yellow_mask = (th >= 25) & (th <= 75) & (ts >= 55) & (tv >= 70)
 
                     # 2. Safety Traffic Orange:
-                    orange_mask = ((th >= 3) & (th <= 25) & (ts >= 28) & (tv >= 30)) | ((tr > 120) & (tg >= 40) & (tg <= 180) & (tb < 110))
+                    orange_mask = (th >= 5) & (th <= 22) & (ts >= 65) & (tv >= 70)
 
                     # 3. High-Vis Safety Red:
-                    red_mask = ((th <= 8) | (th >= 165)) & (ts >= 35) & (tv >= 35)
+                    red_mask = ((th <= 8) | (th >= 165)) & (ts >= 70) & (tv >= 65)
 
                     # 4. Surveyor High-Vis Blue:
-                    blue_mask = (th >= 95) & (th <= 135) & (ts >= 30) & (tv >= 35)
+                    blue_mask = (th >= 95) & (th <= 135) & (ts >= 60) & (tv >= 65)
 
-                    # 5. Retro-Reflective Silver / White Safety Stripes:
-                    silver_tape_mask = (ts <= 35) & (tv >= 150)
+                    # 5. Retro-Reflective Silver / White Safety Stripes (high brightness and moderate saturation):
+                    silver_tape_mask = (ts <= 30) & (tv >= 190)
 
                     hivis_pixels = np.count_nonzero(lime_yellow_mask | orange_mask | red_mask | blue_mask | silver_tape_mask)
                     total_torso_pixels = max(1, (tx2 - tx1) * (ty2 - ty1))
                     hivis_torso_ratio = hivis_pixels / total_torso_pixels
 
-                    if hivis_torso_ratio >= 0.045:
-                        boosted_conf = round(min(0.96, 0.65 + hivis_torso_ratio * 0.6), 2)
+                    if hivis_torso_ratio >= 0.18:
+                        boosted_conf = round(min(0.96, 0.70 + hivis_torso_ratio * 0.5), 2)
                         if not results["safety_vest"]["detected"] or boosted_conf > results["safety_vest"]["confidence"]:
                             results["safety_vest"]["detected"] = True
                             results["safety_vest"]["confidence"] = boosted_conf
@@ -391,13 +391,13 @@ class PPEDetector:
 
             # 1. Aspect ratio check (industrial hardhats are dome-shaped)
             aspect = helmet_w / helmet_h
-            if aspect < 0.50 or aspect > 3.0:
+            if aspect < 0.60 or aspect > 2.6:
                 results["helmet"]["detected"] = False
                 results["helmet"]["confidence"] = 0.0
 
             # 2. Worker body-relative height: Hardhat shell + suspension occupies at least 7% of total body height
-            if (helmet_h / wh) < 0.065:
-                logger.info(f"🚫 Shallow Headwear/Cap detected: crown height too flat ({helmet_h/wh:.1%} < 6.5%)")
+            if (helmet_h / wh) < 0.07:
+                logger.info(f"🚫 Shallow Headwear/Cap detected: crown height too flat ({helmet_h/wh:.1%} < 7%)")
                 results["helmet"]["detected"] = False
                 results["helmet"]["confidence"] = 0.0
 
@@ -406,10 +406,8 @@ class PPEDetector:
                 fx1, fy1, fx2, fy2 = face_bbox
                 face_h = max(1.0, fy2 - fy1)
                 rise_above_face = fy1 - hy1
-                # A true rigid industrial hardhat with suspension sits well above the brow line
-                # Soft cloth wraps or caps sit directly on the forehead
-                if rise_above_face < 0.12 * face_h:
-                    logger.info(f"🚫 Cap/Cloth detected: low suspension clearance ({rise_above_face:.1f}px < {0.12*face_h:.1f}px)")
+                if rise_above_face < 0.10 * face_h:
+                    logger.info(f"🚫 Cap/Cloth detected: low suspension clearance ({rise_above_face:.1f}px < {0.10*face_h:.1f}px)")
                     results["helmet"]["detected"] = False
                     results["helmet"]["confidence"] = 0.0
 
@@ -436,34 +434,19 @@ class PPEDetector:
                             results["helmet"]["detected"] = False
                             results["helmet"]["confidence"] = 0.0
                         # Dull, washed-out casual fabric caps (khaki, faded denim, grey cloth)
-                        elif avg_s < 26 and avg_v < 68:
+                        elif avg_s < 24 and avg_v < 65:
                             logger.info(f"🚫 Casual Fabric Cap detected: dull saturation (S={avg_s:.1f}, V={avg_v:.1f})")
                             results["helmet"]["detected"] = False
                             results["helmet"]["confidence"] = 0.0
-                        else:
-                            # Certified safety hardhat standard colors:
-                            is_yellow = (14 <= avg_h <= 48) and (avg_s >= 28) and (avg_v >= 45)
-                            is_orange = (4 <= avg_h <= 22) and (avg_s >= 35) and (avg_v >= 45)
-                            is_blue = (92 <= avg_h <= 138) and (avg_s >= 28) and (avg_v >= 38)
-                            is_red = ((avg_h <= 10) or (avg_h >= 162)) and (avg_s >= 35) and (avg_v >= 38)
-                            is_white = (avg_s <= 50) and (avg_v >= 65)
-                            is_green = (40 <= avg_h <= 88) and (avg_s >= 28) and (avg_v >= 42)
-
-                            if not (is_yellow or is_orange or is_blue or is_red or is_white or is_green):
-                                # Reject unrecognized dull or dark cloth tones
-                                if avg_v < 65 or (avg_s > 50 and (22 <= avg_h <= 88)):
-                                    logger.info(f"🚫 Non-standard Headwear detected: H={avg_h:.1f}, S={avg_s:.1f}, V={avg_v:.1f}")
-                                    results["helmet"]["detected"] = False
-                                    results["helmet"]["confidence"] = 0.0
                     except Exception:
                         pass
 
         # Negative suppression: cancel if NO-Hardhat or NO-Safety Vest is explicitly detected
-        if negatives["no_helmet"] >= 0.25 and negatives["no_helmet"] >= results["helmet"]["confidence"] * 0.8:
+        if negatives["no_helmet"] >= 0.25 and negatives["no_helmet"] >= results["helmet"]["confidence"] * 0.75:
             results["helmet"]["detected"] = False
             results["helmet"]["confidence"] = 0.0
 
-        if negatives["no_safety_vest"] >= 0.35 and negatives["no_safety_vest"] > results["safety_vest"]["confidence"]:
+        if negatives["no_safety_vest"] >= 0.28 and negatives["no_safety_vest"] > results["safety_vest"]["confidence"]:
             results["safety_vest"]["detected"] = False
             results["safety_vest"]["confidence"] = 0.0
 
