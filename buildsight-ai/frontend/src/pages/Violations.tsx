@@ -19,13 +19,6 @@ const SEVERITY_COLORS: Record<string, string> = {
   LOW: '#3b82f6',
 };
 
-const SEVERITY_BG: Record<string, string> = {
-  CRITICAL: 'rgba(239,68,68,0.10)',
-  HIGH: 'rgba(249,115,22,0.10)',
-  MEDIUM: 'rgba(245,158,11,0.10)',
-  LOW: 'rgba(59,130,246,0.10)',
-};
-
 export default function Violations() {
   const [violations, setViolations] = useState<ViolationResponse[]>([]);
   const [statusFilter, setStatusFilter] = useState('All');
@@ -180,8 +173,8 @@ export default function Violations() {
                 }}>
                   {sorted.map((v) => {
                     const sevColor = SEVERITY_COLORS[v.severity] || '#6b7280';
-                    const sevBg = SEVERITY_BG[v.severity] || 'rgba(107,114,128,0.10)';
                     const isWorking = updating === v.violation_id;
+                    const imgSrc = v.snapshot_base64 || (v.evidence_url ? (v.evidence_url.startsWith('http') ? v.evidence_url : `${API_URL}${v.evidence_url}`) : (v.evidence_path ? (v.evidence_path.startsWith('http') ? v.evidence_path : `${API_URL}${v.evidence_path}`) : null));
                     return (
                       <div
                         key={v.violation_id}
@@ -205,34 +198,42 @@ export default function Violations() {
                         }}
                       >
                         {/* Card Top: Evidence Photo or Severity Banner */}
-                        <div style={{ position: 'relative', height: 130, background: '#000', overflow: 'hidden' }}>
-                          {(v.snapshot_base64 || v.evidence_path) ? (
+                        <div style={{ position: 'relative', height: 135, background: '#0a0e1a', overflow: 'hidden' }}>
+                          {imgSrc ? (
                             <img
-                              src={v.snapshot_base64 || (v.evidence_path?.startsWith('http') ? v.evidence_path : `${API_URL}${v.evidence_path}`)}
+                              src={imgSrc}
                               alt="Evidence"
-                              style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.9 }}
+                              onError={(e) => {
+                                (e.target as HTMLElement).style.display = 'none';
+                              }}
                             />
                           ) : (
-                            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: sevBg }}>
-                              <AlertTriangle size={36} style={{ color: sevColor, opacity: 0.6 }} />
+                            <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle at center, rgba(239,68,68,0.15), rgba(10,14,26,0.9))' }}>
+                              <AlertTriangle size={36} style={{ color: sevColor, opacity: 0.8, marginBottom: 4 }} />
+                              <span style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                                {v.worker_code ? `🆔 ${v.worker_code}` : `Track #${v.worker_id ?? '?'}`}
+                              </span>
                             </div>
                           )}
                           {/* Severity badge overlay */}
                           <div style={{
                             position: 'absolute', top: 8, left: 8,
                             background: sevColor, color: '#fff',
-                            borderRadius: 5, padding: '2px 8px',
-                            fontSize: 11, fontWeight: 700, letterSpacing: 0.5,
+                            borderRadius: 6, padding: '3px 9px',
+                            fontSize: 10, fontWeight: 800, letterSpacing: 0.5,
+                            boxShadow: `0 2px 8px ${sevColor}60`
                           }}>
                             {v.severity}
                           </div>
                           {/* Status badge overlay */}
                           <div style={{
                             position: 'absolute', top: 8, right: 8,
-                            background: v.status === 'OPEN' ? 'rgba(239,68,68,0.85)' : v.status === 'ACKNOWLEDGED' ? 'rgba(245,158,11,0.85)' : 'rgba(16,185,129,0.85)',
+                            background: v.status === 'OPEN' ? 'rgba(239,68,68,0.92)' : v.status === 'ACKNOWLEDGED' ? 'rgba(245,158,11,0.92)' : 'rgba(16,185,129,0.92)',
                             color: '#fff',
-                            borderRadius: 5, padding: '2px 8px',
-                            fontSize: 10, fontWeight: 600,
+                            borderRadius: 6, padding: '3px 8px',
+                            fontSize: 10, fontWeight: 700,
+                            backdropFilter: 'blur(4px)',
                           }}>
                             {v.status}
                           </div>
@@ -241,19 +242,19 @@ export default function Violations() {
                         {/* Card Body */}
                         <div style={{ padding: '12px 14px' }}>
                           {/* Violation Type */}
-                          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4, lineHeight: 1.3 }}>
+                          <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 5, lineHeight: 1.3, letterSpacing: -0.2 }}>
                             {v.violation_type?.replace(/_/g, ' ') || 'Unknown Violation'}
                           </div>
 
                           {/* Worker info */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8 }}>
-                            <User size={11} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                            <User size={12} style={{ color: (v.worker_name || v.worker_code) ? '#38bdf8' : 'var(--text-muted)', flexShrink: 0 }} />
                             {(v.worker_name || v.worker_code) ? (
                               <>
-                                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--accent-cyan)', fontFamily: 'var(--font-mono)' }}>
-                                  {v.worker_code || v.permanent_worker_id}
+                                <span style={{ fontSize: 11.5, fontWeight: 800, color: '#38bdf8', fontFamily: 'var(--font-mono)' }}>
+                                  🆔 {v.worker_code || v.permanent_worker_id}
                                 </span>
-                                <span style={{ fontSize: 11, color: 'var(--text-primary)' }}>
+                                <span style={{ fontSize: 11, color: 'var(--text-primary)', fontWeight: 600 }}>
                                   — {v.worker_name}
                                 </span>
                               </>
@@ -264,29 +265,63 @@ export default function Violations() {
                             )}
                           </div>
 
-                          {/* Missing items */}
+                          {/* Missing items with icons */}
                           {v.missing_items && v.missing_items.length > 0 && (
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
-                              {v.missing_items.map(item => (
-                                <span key={item} style={{
-                                  fontSize: 10, background: 'rgba(239,68,68,0.12)', color: 'var(--accent-red)',
-                                  borderRadius: 4, padding: '1px 6px', border: '1px solid rgba(239,68,68,0.2)',
-                                }}>
-                                  ✕ {item}
-                                </span>
-                              ))}
+                              {v.missing_items.map((item, idx) => {
+                                const s = item.toLowerCase();
+                                let icon = '❌';
+                                let label = item.replace(/_/g, ' ');
+                                let bg = 'rgba(239,68,68,0.14)';
+                                let border = 'rgba(239,68,68,0.3)';
+                                let color = '#f87171';
+
+                                if (s.includes('helmet') || s.includes('hardhat')) {
+                                  icon = '🪖';
+                                  label = 'Hardhat Missing';
+                                } else if (s.includes('vest')) {
+                                  icon = '🦺';
+                                  label = 'Vest Missing';
+                                  bg = 'rgba(249,115,22,0.14)';
+                                  border = 'rgba(249,115,22,0.3)';
+                                  color = '#fb923c';
+                                } else if (s.includes('glove')) {
+                                  icon = '🧤';
+                                  label = 'Gloves Missing';
+                                  bg = 'rgba(234,179,8,0.14)';
+                                  border = 'rgba(234,179,8,0.3)';
+                                  color = '#facc15';
+                                } else if (s.includes('mask')) {
+                                  icon = '😷';
+                                  label = 'Mask Missing';
+                                  bg = 'rgba(56,189,248,0.14)';
+                                  border = 'rgba(56,189,248,0.3)';
+                                  color = '#38bdf8';
+                                }
+
+                                return (
+                                  <span key={idx} style={{
+                                    display: 'inline-flex', alignItems: 'center', gap: 4,
+                                    fontSize: 10.5, fontWeight: 700,
+                                    background: bg, color: color,
+                                    borderRadius: 6, padding: '2px 7px', border: `1px solid ${border}`,
+                                  }}>
+                                    <span>{icon}</span> {label}
+                                  </span>
+                                );
+                              })}
                             </div>
                           )}
 
                           {/* Meta row */}
-                          <div style={{ display: 'flex', gap: 10, fontSize: 11, color: 'var(--text-muted)', marginBottom: 10 }}>
+                          <div style={{ display: 'flex', gap: 12, fontSize: 11, color: 'var(--text-muted)', marginBottom: 10, borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 6 }}>
                             <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                              <Zap size={10} /> {v.risk_score?.toFixed(0) ?? '—'}
+                              <Zap size={10} style={{ color: '#f59e0b' }} /> {v.risk_score?.toFixed(0) ?? '—'} Risk
                             </span>
                             <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                               <Clock size={10} /> {v.duration_seconds?.toFixed(0) ?? 0}s
                             </span>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 3, marginLeft: 'auto' }}>
                               <Shield size={10} /> {v.timestamp ? new Date(v.timestamp).toLocaleTimeString() : '—'}
                             </span>
                           </div>

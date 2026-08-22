@@ -383,7 +383,7 @@ async def get_workers():
             p_path = rw.get("profile_image_path")
             if code and p_path:
                 fn = p_path.replace("\\", "/").split("/")[-1]
-                reg_photo_map[code] = f"/data/photos/{fn}"
+                reg_photo_map[code] = f"/data/profiles/{fn}"
     except Exception:
         pass
 
@@ -457,7 +457,7 @@ async def get_worker(worker_id: int):
                 rw = RegisteredWorkerRepository.get_by_code(code)
                 if rw and rw.get("profile_image_path"):
                     fn = rw["profile_image_path"].replace("\\", "/").split("/")[-1]
-                    p_url = f"/data/photos/{fn}"
+                    p_url = f"/data/profiles/{fn}"
             except Exception:
                 pass
 
@@ -495,7 +495,7 @@ async def get_worker(worker_id: int):
                     rw = RegisteredWorkerRepository.get_by_code(code)
                     if rw and rw.get("profile_image_path"):
                         fn = rw["profile_image_path"].replace("\\", "/").split("/")[-1]
-                        detail["photo_url"] = f"/data/photos/{fn}"
+                        detail["photo_url"] = f"/data/profiles/{fn}"
                 except Exception:
                     pass
             return {**detail, "is_live": False}

@@ -416,7 +416,7 @@ class WorkerRepository:
             p_url = None
             if rw and rw.get("profile_image_path"):
                 fn = rw["profile_image_path"].replace("\\", "/").split("/")[-1]
-                p_url = f"/data/photos/{fn}"
+                p_url = f"/data/profiles/{fn}"
             elif w.get("photo_url"):
                 p_url = w.get("photo_url")
             elif snap and snap.get("photo_url"):
@@ -506,7 +506,7 @@ class WorkerRepository:
         p_url = None
         if rw and rw.get("profile_image_path"):
             fn = rw["profile_image_path"].replace("\\", "/").split("/")[-1]
-            p_url = f"/data/photos/{fn}"
+            p_url = f"/data/profiles/{fn}"
         elif worker.get("photo_url"):
             p_url = worker.get("photo_url")
         elif snap and snap.get("photo_url"):
@@ -654,6 +654,31 @@ class ViolationRepository:
         for v in violations:
             ts = v.get("timestamp")
             resolved_at = v.get("resolved_at")
+            wcode = v.get("worker_code")
+            wid = v.get("worker_id")
+
+            ev_path = v.get("evidence_path")
+            ev_url = v.get("evidence_url") or ev_path
+            snap_b64 = v.get("snapshot_base64")
+
+            # Fallback to registered worker photo or live snapshot if evidence photo was not explicitly saved
+            if not ev_url and not snap_b64:
+                if wcode:
+                    rw = db[COLLECTION_REGISTERED_WORKERS].find_one({"worker_code": wcode})
+                    if rw:
+                        if rw.get("profile_image_path"):
+                            fn = rw["profile_image_path"].replace("\\", "/").split("/")[-1]
+                            ev_url = f"/data/profiles/{fn}"
+                            ev_path = ev_url
+                        elif rw.get("profile_image_base64"):
+                            snap_b64 = rw.get("profile_image_base64")
+                if not ev_url and not snap_b64 and wid is not None:
+                    snap = db[COLLECTION_WORKER_SNAPSHOTS].find_one({"track_id": wid}, sort=[("timestamp", -1)])
+                    if snap:
+                        ev_url = snap.get("photo_url")
+                        ev_path = ev_url
+                        snap_b64 = snap.get("face_crop_base64")
+
             result.append({
                 "id": str(v["_id"]),
                 "violation_id": v.get("violation_id"),
@@ -671,9 +696,9 @@ class ViolationRepository:
                 "timestamp": ts.isoformat() if isinstance(ts, datetime) else (str(ts) if ts else None),
                 "resolved_at": resolved_at.isoformat() if isinstance(resolved_at, datetime) else (str(resolved_at) if resolved_at else None),
                 "duration_seconds": v.get("duration_seconds", 0.0),
-                "evidence_path": v.get("evidence_path"),
-                "evidence_url": v.get("evidence_url") or v.get("evidence_path"),
-                "snapshot_base64": v.get("snapshot_base64"),
+                "evidence_path": ev_path,
+                "evidence_url": ev_url,
+                "snapshot_base64": snap_b64,
                 "description": v.get("description"),
             })
         return result

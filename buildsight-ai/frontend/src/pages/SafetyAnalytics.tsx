@@ -742,7 +742,6 @@ export default function SafetyAnalytics() {
                 </div>
               </div>
             ) : violationViewMode === 'cards' ? (
-              /* ── CARD GRID ── */
               <div style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
@@ -753,121 +752,173 @@ export default function SafetyAnalytics() {
                   const sevColorMap: Record<string, string> = {
                     critical: '#ef4444', high: '#f97316', medium: '#f59e0b', low: '#3b82f6',
                   };
-                  const sevBgMap: Record<string, string> = {
-                    critical: 'rgba(239,68,68,0.10)', high: 'rgba(249,115,22,0.10)',
-                    medium: 'rgba(245,158,11,0.10)', low: 'rgba(59,130,246,0.10)',
-                  };
                   const sevColor = sevColorMap[sev] || '#6b7280';
-                  const sevBg = sevBgMap[sev] || 'rgba(107,114,128,0.10)';
-                  const isRegistered = v.worker_code || (v.worker_id && v.worker_id >= 100);
+                  const isRegistered = Boolean(v.worker_code || (v.worker_id && v.worker_id >= 100));
                   const isActive = updatingId === v.violation_id;
+                  
+                  const imgSrc = v.snapshot_base64 || (v.evidence_url ? (v.evidence_url.startsWith('http') ? v.evidence_url : `${API_URL}${v.evidence_url}`) : (v.evidence_path ? (v.evidence_path.startsWith('http') ? v.evidence_path : `${API_URL}${v.evidence_path}`) : null));
 
                   return (
                     <div
                       key={v.violation_id}
                       onClick={() => setSelectedViolation(v)}
                       style={{
-                        background: 'var(--bg-card)',
-                        border: `1.5px solid ${selectedViolation?.violation_id === v.violation_id ? sevColor : 'var(--border-primary)'}`,
-                        borderRadius: 12,
+                        background: 'var(--bg-card, #111827)',
+                        border: `1.5px solid ${selectedViolation?.violation_id === v.violation_id ? sevColor : 'rgba(255,255,255,0.08)'}`,
+                        borderRadius: 14,
                         overflow: 'hidden',
                         cursor: 'pointer',
                         transition: 'transform 0.15s, box-shadow 0.15s',
-                        boxShadow: selectedViolation?.violation_id === v.violation_id ? `0 0 0 2px ${sevColor}33` : '0 2px 8px rgba(0,0,0,0.18)',
+                        boxShadow: selectedViolation?.violation_id === v.violation_id ? `0 0 0 2px ${sevColor}40, 0 8px 24px rgba(0,0,0,0.4)` : '0 4px 12px rgba(0,0,0,0.22)',
                       }}
                       onMouseEnter={e => {
                         (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)';
-                        (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 24px rgba(0,0,0,0.28)';
+                        (e.currentTarget as HTMLDivElement).style.boxShadow = `0 8px 24px ${sevColor}25, 0 4px 16px rgba(0,0,0,0.4)`;
                       }}
                       onMouseLeave={e => {
                         (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)';
-                        (e.currentTarget as HTMLDivElement).style.boxShadow = selectedViolation?.violation_id === v.violation_id ? `0 0 0 2px ${sevColor}33` : '0 2px 8px rgba(0,0,0,0.18)';
+                        (e.currentTarget as HTMLDivElement).style.boxShadow = selectedViolation?.violation_id === v.violation_id ? `0 0 0 2px ${sevColor}40, 0 8px 24px rgba(0,0,0,0.4)` : '0 4px 12px rgba(0,0,0,0.22)';
                       }}
                     >
                       {/* Photo / Banner */}
-                      <div style={{ position: 'relative', height: 120, background: '#000', overflow: 'hidden' }}>
-                        {(v.snapshot_base64 || v.evidence_path) ? (
+                      <div style={{ position: 'relative', height: 135, background: '#0a0e1a', overflow: 'hidden' }}>
+                        {imgSrc ? (
                           <img
-                            src={v.snapshot_base64 || (v.evidence_path?.startsWith('http') ? v.evidence_path : `${API_URL}${v.evidence_path}`)}
+                            src={imgSrc}
                             alt="Evidence"
-                            style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.9 }}
+                            onError={(e) => {
+                              (e.target as HTMLElement).style.display = 'none';
+                            }}
                           />
                         ) : (
-                          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: sevBg }}>
-                            <AlertTriangle size={32} style={{ color: sevColor, opacity: 0.6 }} />
+                          <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle at center, rgba(239,68,68,0.15), rgba(10,14,26,0.9))' }}>
+                            <AlertTriangle size={36} style={{ color: sevColor, opacity: 0.8, marginBottom: 4 }} />
+                            <span style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                              {v.worker_code ? `🆔 ${v.worker_code}` : `Track #${v.worker_id ?? '?'}`}
+                            </span>
                           </div>
                         )}
-                        <div style={{ position: 'absolute', top: 8, left: 8, background: sevColor, color: '#fff', borderRadius: 5, padding: '2px 8px', fontSize: 10, fontWeight: 700, letterSpacing: 0.5 }}>
+                        {/* Severity tag */}
+                        <div style={{
+                          position: 'absolute', top: 8, left: 8,
+                          background: `${sevColor}`, color: '#fff',
+                          borderRadius: 6, padding: '3px 9px',
+                          fontSize: 10, fontWeight: 800, letterSpacing: 0.5,
+                          boxShadow: `0 2px 8px ${sevColor}60`
+                        }}>
                           {v.severity}
                         </div>
+                        {/* Status tag */}
                         <div style={{
                           position: 'absolute', top: 8, right: 8,
-                          background: v.status === 'OPEN' ? 'rgba(239,68,68,0.85)' : v.status === 'ACKNOWLEDGED' ? 'rgba(245,158,11,0.85)' : 'rgba(16,185,129,0.85)',
-                          color: '#fff', borderRadius: 5, padding: '2px 8px', fontSize: 10, fontWeight: 600,
+                          background: v.status === 'OPEN' ? 'rgba(239,68,68,0.92)' : v.status === 'ACKNOWLEDGED' ? 'rgba(245,158,11,0.92)' : 'rgba(16,185,129,0.92)',
+                          color: '#fff', borderRadius: 6, padding: '3px 8px', fontSize: 10, fontWeight: 700,
+                          backdropFilter: 'blur(4px)',
                         }}>
                           {v.status}
                         </div>
                       </div>
 
                       {/* Body */}
-                      <div style={{ padding: '11px 13px' }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4, lineHeight: 1.3 }}>
-                          {v.violation_type?.replace(/_/g, ' ') || 'Unknown Violation'}
+                      <div style={{ padding: '12px 14px' }}>
+                        <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 5, lineHeight: 1.3, letterSpacing: -0.2 }}>
+                          {v.violation_type?.replace(/_/g, ' ') || 'Safety Non-Compliance'}
                         </div>
 
-                        {/* Worker */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 7 }}>
-                          <User size={10} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-                          <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 11, color: isRegistered ? '#38bdf8' : 'var(--text-secondary)' }}>
-                            {v.worker_code ? `${v.worker_code}` : `#${v.worker_id ?? '?'}`}
+                        {/* Worker Identity */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                          <User size={12} style={{ color: isRegistered ? '#38bdf8' : 'var(--text-muted)', flexShrink: 0 }} />
+                          <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, fontSize: 11.5, color: isRegistered ? '#38bdf8' : 'var(--text-secondary)' }}>
+                            {v.worker_code ? `🆔 ${v.worker_code}` : `Track #${v.worker_id ?? '?'}`}
                           </span>
                           {v.worker_name && (
-                            <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>({v.worker_name})</span>
+                            <span style={{ fontSize: 11, color: 'var(--text-primary)', fontWeight: 600 }}>({v.worker_name})</span>
                           )}
                         </div>
 
-                        {/* Missing PPE tags */}
-                        {v.missing_items && v.missing_items.length > 0 && (
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginBottom: 7 }}>
-                            {v.missing_items.map((item, idx) => (
-                              <span key={idx} style={{
-                                fontSize: 10, background: 'rgba(239,68,68,0.12)', color: '#f87171',
-                                borderRadius: 4, padding: '1px 6px', border: '1px solid rgba(239,68,68,0.25)',
-                              }}>
-                                ✗ {item}
-                              </span>
-                            ))}
+                        {/* Enhanced Missing PPE symbols & chips */}
+                        {v.missing_items && v.missing_items.length > 0 ? (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
+                            {v.missing_items.map((item, idx) => {
+                              const s = item.toLowerCase();
+                              let icon = '❌';
+                              let label = item.replace(/_/g, ' ');
+                              let bg = 'rgba(239,68,68,0.14)';
+                              let border = 'rgba(239,68,68,0.3)';
+                              let color = '#f87171';
+
+                              if (s.includes('helmet') || s.includes('hardhat')) {
+                                icon = '🪖';
+                                label = 'Hardhat Missing';
+                              } else if (s.includes('vest')) {
+                                icon = '🦺';
+                                label = 'Vest Missing';
+                                bg = 'rgba(249,115,22,0.14)';
+                                border = 'rgba(249,115,22,0.3)';
+                                color = '#fb923c';
+                              } else if (s.includes('glove')) {
+                                icon = '🧤';
+                                label = 'Gloves Missing';
+                                bg = 'rgba(234,179,8,0.14)';
+                                border = 'rgba(234,179,8,0.3)';
+                                color = '#facc15';
+                              } else if (s.includes('mask')) {
+                                icon = '😷';
+                                label = 'Mask Missing';
+                                bg = 'rgba(56,189,248,0.14)';
+                                border = 'rgba(56,189,248,0.3)';
+                                color = '#38bdf8';
+                              }
+
+                              return (
+                                <span key={idx} style={{
+                                  display: 'inline-flex', alignItems: 'center', gap: 4,
+                                  fontSize: 10.5, fontWeight: 700,
+                                  background: bg, color: color,
+                                  borderRadius: 6, padding: '2px 7px', border: `1px solid ${border}`,
+                                }}>
+                                  <span>{icon}</span> {label}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div style={{ marginBottom: 8 }}>
+                            <span style={{ fontSize: 10.5, color: '#f87171', fontWeight: 600, background: 'rgba(239,68,68,0.12)', padding: '2px 6px', borderRadius: 4 }}>
+                              ❌ Critical PPE Gap Detected
+                            </span>
                           </div>
                         )}
 
-                        {/* Meta */}
-                        <div style={{ display: 'flex', gap: 10, fontSize: 10, color: 'var(--text-muted)', marginBottom: 9 }}>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                            <Zap size={9} /> {v.risk_score?.toFixed(0) ?? '—'}
+                        {/* Meta metrics */}
+                        <div style={{ display: 'flex', gap: 12, fontSize: 11, color: 'var(--text-muted)', marginBottom: 10, borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 6 }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                            <Zap size={10} style={{ color: '#f59e0b' }} /> {v.risk_score?.toFixed(0) ?? '—'} Risk
                           </span>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                            <Clock size={9} /> {v.duration_seconds?.toFixed(0) ?? 0}s
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                            <Clock size={10} /> {v.duration_seconds?.toFixed(0) ?? 0}s
                           </span>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 3, marginLeft: 'auto' }}>
                             🕐 {v.timestamp ? new Date(v.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
                           </span>
                         </div>
 
-                        {/* Actions */}
-                        <div style={{ display: 'flex', gap: 5 }} onClick={e => e.stopPropagation()}>
+                        {/* Actions Row */}
+                        <div style={{ display: 'flex', gap: 6 }} onClick={e => e.stopPropagation()}>
                           <button
                             className="btn btn-ghost"
                             onClick={() => setSelectedViolation(v)}
-                            style={{ fontSize: 10, padding: '3px 8px' }}
+                            style={{ fontSize: 11, padding: '4px 10px' }}
                           >
-                            <Eye size={10} /> View
+                            <Eye size={11} /> View
                           </button>
                           {v.status === 'OPEN' && (
                             <button
                               className="btn btn-ghost"
                               onClick={() => handleUpdateStatus(v.violation_id, 'ACKNOWLEDGED')}
                               disabled={isActive}
-                              style={{ fontSize: 10, padding: '3px 8px', borderColor: 'rgba(245,158,11,0.4)', color: '#fbbf24' }}
+                              style={{ fontSize: 11, padding: '4px 10px', borderColor: 'rgba(245,158,11,0.4)', color: '#fbbf24' }}
                             >
                               Ack
                             </button>
@@ -877,7 +928,7 @@ export default function SafetyAnalytics() {
                               className="btn btn-ghost"
                               onClick={() => handleUpdateStatus(v.violation_id, 'RESOLVED')}
                               disabled={isActive}
-                              style={{ fontSize: 10, padding: '3px 8px', borderColor: 'rgba(16,185,129,0.4)', color: '#34d399' }}
+                              style={{ fontSize: 11, padding: '4px 10px', borderColor: 'rgba(16,185,129,0.4)', color: '#34d399' }}
                             >
                               Resolve
                             </button>
@@ -886,9 +937,9 @@ export default function SafetyAnalytics() {
                             className="btn btn-ghost"
                             onClick={() => handleDeleteViolation(v.violation_id)}
                             disabled={isActive}
-                            style={{ fontSize: 10, padding: '3px 8px', borderColor: 'rgba(239,68,68,0.3)', color: '#f87171', marginLeft: 'auto' }}
+                            style={{ fontSize: 11, padding: '4px 10px', borderColor: 'rgba(239,68,68,0.3)', color: '#f87171', marginLeft: 'auto' }}
                           >
-                            <Trash2 size={10} />
+                            <Trash2 size={11} />
                           </button>
                         </div>
                       </div>

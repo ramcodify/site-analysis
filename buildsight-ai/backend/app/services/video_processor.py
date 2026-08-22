@@ -532,6 +532,10 @@ class VideoProcessor:
                         except Exception:
                             pass
                         viol["snapshot_base64"] = b64_evidence
+                    elif worker.face_crop_base64 or worker.photo_url:
+                        viol["snapshot_base64"] = worker.face_crop_base64
+                        viol["evidence_path"] = worker.photo_url
+                        viol["evidence_url"] = worker.photo_url
 
                     try:
                         # Close previous open violations for this worker in MongoDB
