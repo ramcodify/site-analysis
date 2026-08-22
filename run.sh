@@ -64,6 +64,7 @@ fi
 
 # 3. Start Backend in Background
 echo "  [1/2] Starting Backend API on http://localhost:8000 ..."
+fuser -k 8000/tcp 2>/dev/null || true
 PYTHONPATH=. python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload &
 BACKEND_PID=$!
 
