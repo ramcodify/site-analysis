@@ -110,7 +110,7 @@ class GraphRAGQueryService:
                 target_viols = list(db["violations"].find({"worker_code": worker_code}).sort("timestamp", -1))
                 target_worker = db["registered_workers"].find_one({"worker_code": worker_code})
 
-            if live_w or target_snap or target_session or target_viols or target_worker or target_mapping or track_id is not None:
+            if live_w or target_snap or target_session or target_viols or target_worker or target_mapping:
                 target_found = True
                 display_track = track_id if track_id is not None else (live_w.worker_id if live_w else (target_snap.get("track_id") if target_snap else (target_session.get("track_id") if target_session else "N/A")))
 
@@ -144,9 +144,10 @@ class GraphRAGQueryService:
 
                 display_role = target_worker.get("role", "Field Technician / Site Operative") if target_worker else "Monitored Site Worker"
                 display_dept = target_worker.get("department", "Construction Operations") if target_worker else "General Construction"
+                registration_status = "REGISTERED" if (target_worker or (live_w and getattr(live_w, "identity_status", None) == "REGISTERED")) else "UNREGISTERED"
 
                 # Identity & Registration Evidence
-                observed_evidence.append(f"Worker Identity: {display_name} (Code: {display_code}, Tracking Session: Track #{display_track}). Role: {display_role}, Department: {display_dept}.")
+                observed_evidence.append(f"Worker Identity: {display_name} (Code: {display_code}, Status: {registration_status}, Tracking Session: Track #{display_track}). Role: {display_role}, Department: {display_dept}.")
 
                 # Missing PPE & Detection Status
                 missing_items = []
@@ -263,22 +264,6 @@ class GraphRAGQueryService:
                 else:
                     recommendations.append(f"✅ Maintain current safety protocols; Track #{display_track} is operating compliantly.")
 
-        # 1d. If a specific track ID was asked but not yet present in active snapshots:
-        if not target_found and track_id is not None:
-            target_found = True
-            active_snaps = list(db["worker_snapshots"].find({}).limit(6))
-            active_ids = [str(s.get("track_id")) for s in active_snaps if s.get("track_id") is not None]
-
-            observed_evidence.append(f"Tracking Session Telemetry: Track #{track_id} has no critical safety violations or danger breaches currently recorded in MongoDB.")
-            if active_ids:
-                observed_evidence.append(f"Monitored live track sessions in database: Track #{', Track #'.join(active_ids)}.")
-            else:
-                observed_evidence.append("Camera telemetry is actively scanning the job site for worker detections.")
-
-            analytics.append(f"Track #{track_id} safety index: 0 recorded open infractions (Assigned Severity Tier: LOW / SAFE).")
-            model_predictions.append(f"AI Causal Reasoning / Thought: Track #{track_id} is evaluated as LOW risk with no hazardous proximity alarms.")
-            recommendations.append(f"Ensure Track #{track_id} is wearing ANSI Type I Hardhat and Class 2 High-Vis Vest before accessing heavy machinery perimeters.")
-
         # ── 2. Risk Level Tier Queries (e.g. "show high risk workers", "who is critical") ──
         if not target_found and risk_levels_queried:
             target_found = True
@@ -378,7 +363,29 @@ class GraphRAGQueryService:
         insufficient_evidence = False
         if not observed_evidence and not model_predictions and not relevant_chunks:
             insufficient_evidence = True
-            answer = "INSUFFICIENT_EVIDENCE: The query does not match any observed camera events, active workers, progress records, or indexed safety documents in the MongoDB database."
+            if track_id is not None or worker_code is not None:
+                active_ids = []
+                try:
+                    from app.services.video_processor import video_processor
+                    active_ids = [f"Track #{w.worker_id}" for w in video_processor.tracker.get_all_workers()]
+                except Exception:
+                    pass
+                if not active_ids:
+                    sessions = list(db["worker_sessions"].find({}).sort("last_seen", -1).limit(6))
+                    active_ids = [f"Track #{s.get('track_id')}" for s in sessions if s.get('track_id') is not None]
+
+                reg_workers = list(db["registered_workers"].find({}).limit(6))
+                reg_list = [f"{rw.get('worker_code')} ({rw.get('name')})" for rw in reg_workers]
+
+                req_target = f"Track #{track_id}" if track_id is not None else f"Worker '{worker_code}'"
+                answer_parts = [f"INSUFFICIENT_EVIDENCE: {req_target} is not currently active on the camera feed or registered in the worker database."]
+                if active_ids:
+                    answer_parts.append(f"Currently active live tracks: {', '.join(active_ids)}.")
+                if reg_list:
+                    answer_parts.append(f"Registered personnel in database: {', '.join(reg_list)}.")
+                answer = " ".join(answer_parts)
+            else:
+                answer = "INSUFFICIENT_EVIDENCE: The query does not match any observed camera events, active workers, progress records, or indexed safety documents in the MongoDB database."
         else:
             # Compose structured answer summary
             points = []
