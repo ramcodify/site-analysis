@@ -31,7 +31,7 @@ class FaceRecognitionService:
         self,
         detector_path: Optional[str] = None,
         recognizer_path: Optional[str] = None,
-        match_threshold: float = 0.58,
+        match_threshold: float = 0.45,
     ):
         self.detector_path = detector_path or settings.face_detection_model_path
         self.recognizer_path = recognizer_path or settings.face_recognition_model_path
@@ -123,7 +123,7 @@ class FaceRecognitionService:
 
     # ── Face Detection ───────────────────────────────────────────
 
-    def detect_faces(self, image: np.ndarray, conf_threshold: float = 0.55) -> List[Dict[str, Any]]:
+    def detect_faces(self, image: np.ndarray, conf_threshold: float = 0.35) -> List[Dict[str, Any]]:
         """
         Detect faces in image.
         Returns list of dicts with keys:

@@ -26,10 +26,10 @@ class Settings(BaseSettings):
     evidence_dir: str = "data/evidence"
 
     # Face Recognition & Identity Matching
-    face_match_threshold: float = 0.50
+    face_match_threshold: float = 0.45
     face_confirmation_frames: int = 2
     face_history_window: int = 10
-    face_min_confidence: float = 0.50
+    face_min_confidence: float = 0.35
 
     # Detection
     detection_confidence: float = 0.50
