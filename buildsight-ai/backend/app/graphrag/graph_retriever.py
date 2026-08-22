@@ -30,12 +30,27 @@ class GraphRetriever:
             "risk_levels": [],
         }
 
-        # 1. Match Track IDs (e.g., "track id 43", "track 43", "track_id 43", "track#43", "id 43", "track-43")
-        track_matches = re.findall(r'\b(?:track(?:_id|[-_ ]?id)?|id|track#)[-_ ]?(\d{1,5})\b', q_lower)
-        for t in track_matches:
+        # 1. Match Track IDs (e.g., "track id #49", "track #49", "track 49", "track_id 49", "#49", "id: 49", "track-49", "worker #49")
+        explicit_track_matches = re.findall(r'(?:track(?:_id|[-_ ]?id)?|worker|person|emp|id)[-_: ]*#?\s*(\d{1,5})\b', q_lower)
+        for t in explicit_track_matches:
             tid = int(t)
             if tid not in entities["track_ids"]:
                 entities["track_ids"].append(tid)
+
+        # Match standalone #49 or # 49
+        hash_matches = re.findall(r'#\s*(\d{1,5})\b', q_lower)
+        for h in hash_matches:
+            tid = int(h)
+            if tid not in entities["track_ids"]:
+                entities["track_ids"].append(tid)
+
+        # Match any standalone number if query asks about track / worker / status / person
+        if not entities["track_ids"] and any(k in q_lower for k in ["track", "worker", "who", "how", "person", "status", "id"]):
+            num_matches = re.findall(r'\b(\d{1,5})\b', q_lower)
+            for n in num_matches:
+                tid = int(n)
+                if tid not in entities["track_ids"]:
+                    entities["track_ids"].append(tid)
 
         # 2. Match Worker Codes (e.g., W001, W043, EMP-001, EMP-043, Worker-01, Worker 43)
         # Match EMP codes (e.g. EMP-001, EMP-43, emp 043)

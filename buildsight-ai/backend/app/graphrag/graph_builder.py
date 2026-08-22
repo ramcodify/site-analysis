@@ -89,6 +89,56 @@ class ConstructionKnowledgeGraph:
             )
             self.graph.add_edge(proj_id, w_id, relation=RelationType.CONTAINS)
 
+        # 4b. Live Tracked Workers (from in-memory tracker + MongoDB sessions)
+        try:
+            from app.services.video_processor import video_processor
+            live_workers = video_processor.tracker.get_all_workers()
+            for lw in live_workers:
+                track_node_id = f"TRACK-{lw.worker_id}"
+                if track_node_id not in self.graph:
+                    self.graph.add_node(
+                        track_node_id,
+                        node_type=NodeType.WORKER,
+                        track_id=lw.worker_id,
+                        name=lw.name or f"Unknown Worker (Track #{lw.worker_id})",
+                        worker_code=lw.worker_code or lw.permanent_worker_id or f"TRACK-{lw.worker_id}",
+                        role="Site Operative",
+                        risk_score=lw.risk_score,
+                        risk_level=lw.risk_level,
+                        compliance_status=lw.compliance_status,
+                        is_live=True,
+                    )
+                    self.graph.add_edge(proj_id, track_node_id, relation=RelationType.CONTAINS)
+                    if lw.permanent_worker_id and f"WORKER-{lw.permanent_worker_id}" in self.graph:
+                        self.graph.add_edge(track_node_id, f"WORKER-{lw.permanent_worker_id}", relation=RelationType.RELATED_TO)
+                    # Edges to missing PPE
+                    if lw.helmet is False:
+                        self.graph.add_edge(track_node_id, "PPE-HELMET", relation=RelationType.MISSING)
+                    if lw.vest is False:
+                        self.graph.add_edge(track_node_id, "PPE-SAFETY_VEST", relation=RelationType.MISSING)
+        except Exception as e:
+            logger.debug(f"Live worker graph sync note: {e}")
+
+        # Also add worker sessions from MongoDB
+        try:
+            sessions_cursor = db["worker_sessions"].find({}).sort("last_seen", -1).limit(40)
+            for s in sessions_cursor:
+                tid = s.get("track_id")
+                if tid is not None:
+                    track_node_id = f"TRACK-{tid}"
+                    if track_node_id not in self.graph:
+                        self.graph.add_node(
+                            track_node_id,
+                            node_type=NodeType.WORKER,
+                            track_id=tid,
+                            name=s.get("name") or f"Worker (Track #{tid})",
+                            worker_code=s.get("worker_code") or f"TRACK-{tid}",
+                            is_live=bool(s.get("is_live", False)),
+                        )
+                        self.graph.add_edge(proj_id, track_node_id, relation=RelationType.CONTAINS)
+        except Exception as e:
+            logger.debug(f"Session graph sync note: {e}")
+
         # 5. Danger Zones
         zones_cursor = db["danger_zones"].find({})
         for z in zones_cursor:

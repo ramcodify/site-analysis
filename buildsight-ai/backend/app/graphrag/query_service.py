@@ -67,38 +67,83 @@ class GraphRAGQueryService:
         target_found = False
 
         if track_id is not None or worker_code is not None or any(k in q_lower for k in ["track", "worker", "emp", "who is", "how is", "person"]):
-            # Attempt to resolve worker by track_id or worker_code
+            # Attempt to resolve worker by live tracker, track_id, or worker_code
+            live_w = None
             target_snap = None
+            target_session = None
             target_viols = []
             target_worker = None
             target_mapping = None
 
-            # 1a. Search by track_id
+            # 1a. Search Live In-Memory Video Tracker
+            try:
+                from app.services.video_processor import video_processor
+                if track_id is not None:
+                    live_w = video_processor.tracker.get_worker(int(track_id))
+                    if not live_w:
+                        for w in video_processor.tracker.get_all_workers():
+                            if str(w.worker_id) == str(track_id):
+                                live_w = w
+                                break
+                if not live_w and worker_code is not None:
+                    for w in video_processor.tracker.get_all_workers():
+                        if w.worker_code == worker_code or w.permanent_worker_id == worker_code:
+                            live_w = w
+                            break
+            except Exception as e:
+                pass
+
+            # 1b. Search MongoDB collections
             if track_id is not None:
-                target_snap = db["worker_snapshots"].find_one({"track_id": {"$in": [track_id, str(track_id)]}}, sort=[("timestamp", -1)])
-                target_viols = list(db["violations"].find({"track_id": {"$in": [track_id, str(track_id)]}}).sort("timestamp", -1))
-                target_mapping = db["worker_identity_mappings"].find_one({"track_id": track_id})
+                tid_int = int(track_id)
+                target_snap = db["worker_snapshots"].find_one({"track_id": {"$in": [tid_int, str(tid_int)]}}, sort=[("timestamp", -1)])
+                target_session = db["worker_sessions"].find_one({"track_id": {"$in": [tid_int, str(tid_int)]}}, sort=[("last_seen", -1)])
+                target_viols = list(db["violations"].find({"track_id": {"$in": [tid_int, str(tid_int)]}}).sort("timestamp", -1))
+                target_mapping = db["worker_identity_mappings"].find_one({"track_id": {"$in": [tid_int, str(tid_int)]}})
                 if not target_worker and target_mapping and target_mapping.get("worker_code"):
                     target_worker = db["registered_workers"].find_one({"worker_code": target_mapping["worker_code"]})
 
-            # 1b. Search by worker_code
+            # 1c. Search by worker_code
             if not target_snap and worker_code is not None:
                 target_snap = db["worker_snapshots"].find_one({"worker_code": worker_code}, sort=[("timestamp", -1)])
+                target_session = db["worker_sessions"].find_one({"worker_code": worker_code}, sort=[("last_seen", -1)])
                 target_viols = list(db["violations"].find({"worker_code": worker_code}).sort("timestamp", -1))
                 target_worker = db["registered_workers"].find_one({"worker_code": worker_code})
 
-            # 1c. If no specific target ID was extracted but query asks about general track status
-            if not target_snap and not target_viols and (track_id is not None or worker_code is not None):
-                # Search by generic query string matching
-                target_worker = db["registered_workers"].find_one({"worker_code": {"$regex": f"^{worker_code or track_id}", "$options": "i"}})
-
-            if target_snap or target_viols or target_worker or target_mapping:
+            if live_w or target_snap or target_session or target_viols or target_worker or target_mapping or track_id is not None:
                 target_found = True
-                display_track = track_id if track_id is not None else (target_snap.get("track_id") if target_snap else (target_mapping.get("track_id") if target_mapping else "N/A"))
-                display_code = (target_worker.get("worker_code") if target_worker else (target_snap.get("worker_code") if target_snap else (target_mapping.get("worker_code") if target_mapping else f"W{display_track:03d}" if isinstance(display_track, int) else "Unregistered Worker")))
-                display_name = (target_worker.get("name") if target_worker else (target_snap.get("name") if target_snap else (target_mapping.get("name") if target_mapping else f"Worker #{display_track}")))
+                display_track = track_id if track_id is not None else (live_w.worker_id if live_w else (target_snap.get("track_id") if target_snap else (target_session.get("track_id") if target_session else "N/A")))
+
+                # Determine display code
+                display_code = "UNASSIGNED"
+                if live_w and (live_w.worker_code or live_w.permanent_worker_id):
+                    display_code = live_w.worker_code or live_w.permanent_worker_id
+                elif target_worker and target_worker.get("worker_code"):
+                    display_code = target_worker["worker_code"]
+                elif target_snap and target_snap.get("worker_code"):
+                    display_code = target_snap["worker_code"]
+                elif target_session and target_session.get("worker_code"):
+                    display_code = target_session["worker_code"]
+                elif target_mapping and target_mapping.get("worker_code"):
+                    display_code = target_mapping["worker_code"]
+                elif isinstance(display_track, int):
+                    display_code = f"W{display_track:03d}"
+
+                # Determine display name
+                display_name = f"Unknown Worker (Track #{display_track})"
+                if live_w and live_w.name:
+                    display_name = live_w.name
+                elif target_worker and target_worker.get("name"):
+                    display_name = target_worker["name"]
+                elif target_snap and target_snap.get("name"):
+                    display_name = target_snap["name"]
+                elif target_session and target_session.get("name"):
+                    display_name = target_session["name"]
+                elif target_mapping and target_mapping.get("name"):
+                    display_name = target_mapping["name"]
+
                 display_role = target_worker.get("role", "Field Technician / Site Operative") if target_worker else "Monitored Site Worker"
-                display_dept = target_worker.get("department", "Site Operations") if target_worker else "General Construction"
+                display_dept = target_worker.get("department", "Construction Operations") if target_worker else "General Construction"
 
                 # Identity & Registration Evidence
                 observed_evidence.append(f"Worker Identity: {display_name} (Code: {display_code}, Tracking Session: Track #{display_track}). Role: {display_role}, Department: {display_dept}.")
@@ -107,16 +152,42 @@ class GraphRAGQueryService:
                 missing_items = []
                 detected_items = []
                 compliance_status = "COMPLIANT"
-                zone_name = "Standard Walking Corridor"
+                zone_name = "Standard Monitored Zone"
 
-                if target_snap:
+                if live_w:
+                    compliance_status = live_w.compliance_status or "NON_COMPLIANT"
+                    if live_w.helmet:
+                        detected_items.append("Helmet / Hardhat")
+                    else:
+                        missing_items.append("Helmet / Hardhat")
+
+                    if live_w.vest:
+                        detected_items.append("High-Visibility Safety Vest")
+                    else:
+                        missing_items.append("High-Visibility Safety Vest")
+
+                    if live_w.gloves is True:
+                        detected_items.append("Protective Gloves")
+                    elif live_w.gloves is False:
+                        missing_items.append("Protective Gloves")
+
+                    if live_w.face_mask is True:
+                        detected_items.append("Face Mask / Respirator")
+                    elif live_w.face_mask is False:
+                        missing_items.append("Face Mask / Respirator")
+
+                    if live_w.missing_ppe:
+                        for m in live_w.missing_ppe:
+                            if m not in missing_items:
+                                missing_items.append(m)
+
+                elif target_snap:
                     compliance_status = target_snap.get("compliance_status", "COMPLIANT")
-                    zone_name = target_snap.get("danger_zone_name") or "Standard Walking Corridor"
+                    zone_name = target_snap.get("danger_zone_name") or "Standard Monitored Zone"
                     snap_missing = target_snap.get("missing_ppe", [])
                     if isinstance(snap_missing, list):
-                        missing_items = snap_missing
+                        missing_items = list(snap_missing)
 
-                    # Breakdown of individual items
                     if target_snap.get("helmet"):
                         detected_items.append("Helmet / Hardhat")
                     elif "helmet" not in [m.lower() for m in missing_items]:
@@ -156,12 +227,14 @@ class GraphRAGQueryService:
 
                 # Risk Score & Tier Calculation
                 raw_risk_score = 0.0
-                if target_snap and "risk_score" in target_snap:
+                if live_w and hasattr(live_w, "risk_score") and live_w.risk_score > 0:
+                    raw_risk_score = float(live_w.risk_score)
+                elif target_snap and "risk_score" in target_snap:
                     raw_risk_score = float(target_snap["risk_score"])
                 elif target_viols:
                     raw_risk_score = min(100.0, len(target_viols) * 28.5 + (20.0 if "zone" in zone_name.lower() else 0.0))
 
-                risk_tier = self._determine_risk_tier(raw_risk_score)
+                risk_tier = (live_w.risk_level if live_w and getattr(live_w, "risk_level", None) else self._determine_risk_tier(raw_risk_score))
                 analytics.append(f"Safety Risk Assessment: Risk Score = {raw_risk_score:.1f} / 100.0 (Severity Tier: {risk_tier}).")
                 analytics.append(f"Violation History: {len(target_viols)} recorded safety tickets across active tracking telemetry.")
 
