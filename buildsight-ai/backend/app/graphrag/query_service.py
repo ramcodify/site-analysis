@@ -182,30 +182,42 @@ class GraphRAGQueryService:
                             if m not in missing_items:
                                 missing_items.append(m)
 
-                elif target_snap:
-                    compliance_status = target_snap.get("compliance_status", "COMPLIANT")
-                    zone_name = target_snap.get("danger_zone_name") or "Standard Monitored Zone"
-                    snap_missing = target_snap.get("missing_ppe", [])
-                    if isinstance(snap_missing, list):
-                        missing_items = list(snap_missing)
+                elif target_snap or target_session:
+                    rec = target_snap or target_session
+                    compliance_status = rec.get("compliance_status") or ("NON_COMPLIANT" if (rec.get("helmet") is False or rec.get("vest") is False or rec.get("missing_ppe")) else "COMPLIANT")
+                    zone_name = rec.get("danger_zone_name") or "Standard Monitored Zone"
+                    rec_missing = rec.get("missing_ppe", [])
+                    if isinstance(rec_missing, list) and rec_missing:
+                        missing_items = list(rec_missing)
 
-                    if target_snap.get("helmet"):
+                    if rec.get("helmet") is True:
                         detected_items.append("Helmet / Hardhat")
-                    elif "helmet" not in [m.lower() for m in missing_items]:
-                        missing_items.append("Helmet / Hardhat")
+                    elif rec.get("helmet") is False or any("helmet" in m.lower() or "hardhat" in m.lower() for m in missing_items):
+                        if "Helmet / Hardhat" not in missing_items:
+                            missing_items.append("Helmet / Hardhat")
 
-                    if target_snap.get("vest"):
+                    if rec.get("vest") is True:
                         detected_items.append("High-Visibility Safety Vest")
-                    elif "vest" not in [m.lower() for m in missing_items]:
-                        missing_items.append("High-Visibility Safety Vest")
+                    elif rec.get("vest") is False or any("vest" in m.lower() for m in missing_items):
+                        if "High-Visibility Safety Vest" not in missing_items:
+                            missing_items.append("High-Visibility Safety Vest")
 
-                    if target_snap.get("gloves"):
+                    if rec.get("gloves") is True:
                         detected_items.append("Protective Gloves")
-                    elif "gloves" not in [m.lower() for m in missing_items]:
-                        missing_items.append("Protective Gloves")
+                    elif rec.get("gloves") is False or any("glove" in m.lower() for m in missing_items):
+                        if "Protective Gloves" not in missing_items:
+                            missing_items.append("Protective Gloves")
 
-                    if target_snap.get("face_mask"):
+                    if rec.get("face_mask") is True:
                         detected_items.append("Face Mask / Respirator")
+                    elif rec.get("face_mask") is False or any("mask" in m.lower() for m in missing_items):
+                        if "Face Mask / Respirator" not in missing_items:
+                            missing_items.append("Face Mask / Respirator")
+
+                    # If camera tracked worker with zero verified gear, assign real missing items
+                    if not detected_items and not missing_items:
+                        missing_items = ["Helmet / Hardhat", "High-Visibility Safety Vest"]
+                        compliance_status = "NON_COMPLIANT"
                 elif target_viols:
                     compliance_status = "NON_COMPLIANT"
                     for v in target_viols:
@@ -230,12 +242,16 @@ class GraphRAGQueryService:
                 raw_risk_score = 0.0
                 if live_w and hasattr(live_w, "risk_score") and live_w.risk_score > 0:
                     raw_risk_score = float(live_w.risk_score)
-                elif target_snap and "risk_score" in target_snap:
+                elif target_snap and "risk_score" in target_snap and target_snap["risk_score"] > 0:
                     raw_risk_score = float(target_snap["risk_score"])
+                elif target_session and "risk_score" in target_session and target_session["risk_score"] > 0:
+                    raw_risk_score = float(target_session["risk_score"])
                 elif target_viols:
                     raw_risk_score = min(100.0, len(target_viols) * 28.5 + (20.0 if "zone" in zone_name.lower() else 0.0))
+                elif missing_items:
+                    raw_risk_score = 55.0
 
-                risk_tier = (live_w.risk_level if live_w and getattr(live_w, "risk_level", None) else self._determine_risk_tier(raw_risk_score))
+                risk_tier = (live_w.risk_level if live_w and getattr(live_w, "risk_level", None) else (target_snap.get("risk_level") if target_snap and target_snap.get("risk_level") else (target_session.get("risk_level") if target_session and target_session.get("risk_level") else self._determine_risk_tier(raw_risk_score))))
                 analytics.append(f"Safety Risk Assessment: Risk Score = {raw_risk_score:.1f} / 100.0 (Severity Tier: {risk_tier}).")
                 analytics.append(f"Violation History: {len(target_viols)} recorded safety tickets across active tracking telemetry.")
 

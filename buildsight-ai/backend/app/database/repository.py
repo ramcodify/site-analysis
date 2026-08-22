@@ -279,7 +279,7 @@ class RegisteredWorkerRepository:
             "lifetime_tracking_duration": round(float(dur_sum), 1),
             "avg_ppe_compliance": round(float(avg_compliance), 1),
             "latest_risk_score": latest_snap.get("risk_score", 0.0) if latest_snap else 0.0,
-            "latest_risk_level": latest_snap.get("risk_level", "SAFE") if latest_snap else "SAFE",
+        "latest_risk_level": latest_snap.get("risk_level", "SAFE") if latest_snap else "SAFE",
             "last_recognized": last_seen_val.isoformat() if isinstance(last_seen_val, datetime) else (str(last_seen_val) if last_seen_val else None),
         }
 
@@ -290,12 +290,25 @@ class WorkerRepository:
     """CRUD for ByteTrack tracking sessions in MongoDB (`worker_sessions`)."""
 
     @staticmethod
-    def upsert_worker(track_id: int, source_id: str = "webcam", worker_code: Optional[str] = None, photo_url: Optional[str] = None) -> dict:
+    def upsert_worker(
+        track_id: int,
+        source_id: str,
+        worker_code: Optional[str] = None,
+        photo_url: Optional[str] = None,
+        helmet: Optional[bool] = None,
+        vest: Optional[bool] = None,
+        gloves: Optional[bool] = None,
+        face_mask: Optional[bool] = None,
+        missing_ppe: Optional[list] = None,
+        risk_score: Optional[float] = None,
+        risk_level: Optional[str] = None,
+        compliance_status: Optional[str] = None,
+    ) -> dict:
         db = get_db()
         now = datetime.now(timezone.utc)
         existing = db[COLLECTION_WORKER_SESSIONS].find_one({"track_id": track_id})
 
-        if existing is None:
+        if not existing:
             doc = {
                 "worker_id": track_id,
                 "track_id": track_id,
@@ -303,6 +316,14 @@ class WorkerRepository:
                 "permanent_worker_id": worker_code,
                 "source_id": source_id,
                 "photo_url": photo_url,
+                "helmet": helmet,
+                "vest": vest,
+                "gloves": gloves,
+                "face_mask": face_mask,
+                "missing_ppe": missing_ppe or ([] if (helmet and vest) else ["Helmet / Hardhat", "High-Visibility Safety Vest"]),
+                "risk_score": risk_score if risk_score is not None else (0.0 if (helmet and vest) else 55.0),
+                "risk_level": risk_level or ("SAFE" if (helmet and vest) else "MEDIUM"),
+                "compliance_status": compliance_status or ("COMPLIANT" if (helmet and vest) else "NON_COMPLIANT"),
                 "identity_status": "REGISTERED" if worker_code else "UNKNOWN",
                 "started_at": now,
                 "first_seen": now,
@@ -326,11 +347,39 @@ class WorkerRepository:
                 update["$set"]["worker_code"] = worker_code
                 update["$set"]["permanent_worker_id"] = worker_code
                 update["$set"]["identity_status"] = "REGISTERED"
+            if helmet is not None:
+                update["$set"]["helmet"] = helmet
+            if vest is not None:
+                update["$set"]["vest"] = vest
+            if gloves is not None:
+                update["$set"]["gloves"] = gloves
+            if face_mask is not None:
+                update["$set"]["face_mask"] = face_mask
+            if missing_ppe is not None:
+                update["$set"]["missing_ppe"] = missing_ppe
+            if risk_score is not None:
+                update["$set"]["risk_score"] = risk_score
+            if risk_level is not None:
+                update["$set"]["risk_level"] = risk_level
+            if compliance_status is not None:
+                update["$set"]["compliance_status"] = compliance_status
+
             db[COLLECTION_WORKER_SESSIONS].update_one({"track_id": track_id}, update)
             return db[COLLECTION_WORKER_SESSIONS].find_one({"track_id": track_id})
 
     @staticmethod
-    def update_worker_duration(track_id: int, duration: float, worker_code: Optional[str] = None, photo_url: Optional[str] = None):
+    def update_worker_duration(
+        track_id: int,
+        duration: float,
+        worker_code: Optional[str] = None,
+        photo_url: Optional[str] = None,
+        helmet: Optional[bool] = None,
+        vest: Optional[bool] = None,
+        risk_score: Optional[float] = None,
+        risk_level: Optional[str] = None,
+        missing_ppe: Optional[list] = None,
+        compliance_status: Optional[str] = None,
+    ):
         db = get_db()
         now = datetime.now(timezone.utc)
         update = {"$set": {"last_seen": now, "total_tracking_duration": duration}}
@@ -340,6 +389,19 @@ class WorkerRepository:
             update["$set"]["worker_code"] = worker_code
             update["$set"]["permanent_worker_id"] = worker_code
             update["$set"]["identity_status"] = "REGISTERED"
+        if helmet is not None:
+            update["$set"]["helmet"] = helmet
+        if vest is not None:
+            update["$set"]["vest"] = vest
+        if risk_score is not None:
+            update["$set"]["risk_score"] = risk_score
+        if risk_level is not None:
+            update["$set"]["risk_level"] = risk_level
+        if missing_ppe is not None:
+            update["$set"]["missing_ppe"] = missing_ppe
+        if compliance_status is not None:
+            update["$set"]["compliance_status"] = compliance_status
+
         db[COLLECTION_WORKER_SESSIONS].update_one({"track_id": track_id}, update)
 
     @staticmethod

@@ -589,10 +589,30 @@ class VideoProcessor:
         for worker in tracked:
             try:
                 WorkerRepository.upsert_worker(
-                    worker.worker_id, self._source, worker_code=worker.worker_code, photo_url=worker.photo_url
+                    worker.worker_id,
+                    self._source,
+                    worker_code=worker.worker_code,
+                    photo_url=worker.photo_url,
+                    helmet=worker.helmet,
+                    vest=worker.vest,
+                    gloves=worker.gloves,
+                    face_mask=worker.face_mask,
+                    missing_ppe=worker.missing_ppe,
+                    risk_score=worker.risk_score,
+                    risk_level=worker.risk_level,
+                    compliance_status=worker.compliance_status,
                 )
                 WorkerRepository.update_worker_duration(
-                    worker.worker_id, worker.tracking_duration, worker_code=worker.worker_code, photo_url=worker.photo_url
+                    worker.worker_id,
+                    worker.tracking_duration,
+                    worker_code=worker.worker_code,
+                    photo_url=worker.photo_url,
+                    helmet=worker.helmet,
+                    vest=worker.vest,
+                    risk_score=worker.risk_score,
+                    risk_level=worker.risk_level,
+                    missing_ppe=worker.missing_ppe,
+                    compliance_status=worker.compliance_status,
                 )
                 
                 # Check if state changed before inserting snapshot
